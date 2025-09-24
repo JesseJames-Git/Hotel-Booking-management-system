@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 # Remote library imports
-from flask import request
-from flask_restful import Resource
-
+from flask import Flask, request
+from flask_restful import Resource, Api
+from flask_sqlalchemy import SQLAlchemy
 # Local imports
 from config import app, db, api
 
@@ -14,10 +14,10 @@ from routes.bookings import Bookings
 from routes.users import Users
 
 # Root route
-@app.route('/')
-def index():
-    return '<h1>Project Server</h1>'
-
+app = Flask(__name__)
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///hotel.db"
+db = SQLAlchemy(app)
+api = Api(app)
 # Register API resources
 api.add_resource(Hotels, '/hotels')
 api.add_resource(HotelById, '/hotels/<int:id>')
