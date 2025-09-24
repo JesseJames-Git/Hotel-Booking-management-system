@@ -1,8 +1,8 @@
-"""Make initial tables and relationships
+"""Initial schema
 
-Revision ID: 79f62966c887
+Revision ID: 95548db15c88
 Revises: 
-Create Date: 2025-09-24 11:38:53.200094
+Create Date: 2025-09-24 22:44:53.042944
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '79f62966c887'
+revision = '95548db15c88'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -28,10 +28,11 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('email', sa.String(), nullable=False),
-    sa.Column('password_hash', sa.String(), nullable=False),
+    sa.Column('_password_hash', sa.String(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('email')
     )
     op.create_table('hotels',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -42,7 +43,7 @@ def upgrade():
     sa.Column('email', sa.String(), nullable=False),
     sa.Column('phone', sa.String(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('room_types',
@@ -54,10 +55,10 @@ def upgrade():
     op.create_table('admins',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
-    sa.Column('password_hash', sa.String(), nullable=False),
+    sa.Column('_password_hash', sa.String(), nullable=False),
     sa.Column('hotel_id', sa.Integer(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['hotel_id'], ['hotels.id'], name=op.f('fk_admins_hotel_id_hotels')),
     sa.PrimaryKeyConstraint('id')
     )
@@ -73,10 +74,11 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('hotel_id', sa.Integer(), nullable=True),
     sa.Column('room_type_id', sa.Integer(), nullable=True),
+    sa.Column('room_name', sa.String(), nullable=False),
     sa.Column('price_per_night', sa.Numeric(precision=6, scale=2), nullable=False),
     sa.Column('is_available', sa.Boolean(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['hotel_id'], ['hotels.id'], name=op.f('fk_rooms_hotel_id_hotels')),
     sa.ForeignKeyConstraint(['room_type_id'], ['room_types.id'], name=op.f('fk_rooms_room_type_id_room_types')),
     sa.PrimaryKeyConstraint('id')
@@ -89,7 +91,7 @@ def upgrade():
     sa.Column('check_out_date', sa.DateTime(), nullable=False),
     sa.Column('status', sa.String(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['guest_id'], ['guests.id'], name=op.f('fk_bookings_guest_id_guests')),
     sa.ForeignKeyConstraint(['room_id'], ['rooms.id'], name=op.f('fk_bookings_room_id_rooms')),
     sa.PrimaryKeyConstraint('id')

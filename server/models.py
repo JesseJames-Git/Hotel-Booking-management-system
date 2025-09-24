@@ -1,8 +1,8 @@
 from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.ext.hybrid import hybrid_property
 from datetime import datetime, timedelta
-
-from config import db
+from config import db, bcrypt
 
 
 class TimestampMixin:
@@ -19,11 +19,26 @@ class Guests(db.Model, SerializerMixin, TimestampMixin):
     
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
-    email = db.Column(db.String, nullable=False)
-    password_hash = db.Column(db.String, nullable=False)
+    email = db.Column(db.String, unique=True, nullable=False)
+    _password_hash = db.Column(db.String, nullable=False)
 
     # relationships
     bookings = db.relationship('Bookings', back_populates='guest')
+
+
+    # properties
+    @hybrid_property
+    def password_hash(self):
+        return self._password_hash
+    
+    @password_hash.setter
+    def password_hash(self, password):
+        password_hash = bcrypt.generate_password_hash(password.encode('utf-8'))
+        self._password_hash = password_hash.decode('utf-8')
+
+
+    def authenticate(self, password):
+        return bcrypt.check_password_hash(self._password_hash, password.encode('utf-8'))
 
 
 class Hotels(db.Model, SerializerMixin, TimestampMixin):
@@ -42,16 +57,32 @@ class Hotels(db.Model, SerializerMixin, TimestampMixin):
     rooms = db.relationship('Rooms', back_populates='hotel')
     hotel_amenities = db.relationship('HotelAmenities', back_populates='hotel')
 
+
 class Admins(db.Model, SerializerMixin, TimestampMixin):
     __tablename__ = 'admins'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
-    password_hash = db.Column(db.String, nullable=False)
+    _password_hash = db.Column(db.String, nullable=False)
     hotel_id = db.Column(db.Integer, db.ForeignKey('hotels.id'))
 
     # relationships
     hotel = db.relationship('Hotels', back_populates='admin')
+
+    # properties
+    @hybrid_property
+    def password_hash(self):
+        return self._password_hash
+    
+    @password_hash.setter
+    def password_hash(self, password):
+        password_hash = bcrypt.generate_password_hash(password.encode('utf-8'))
+        self._password_hash = password_hash.decode('utf-8')
+
+    
+    def authenticate(self, password):
+        return bcrypt.check_password_hash(self._password_hash, password.encode('utf-8'))
+    
 
 class Rooms(db.Model, SerializerMixin, TimestampMixin):
     __tablename__ = 'rooms'
@@ -59,12 +90,14 @@ class Rooms(db.Model, SerializerMixin, TimestampMixin):
     id = db.Column(db.Integer, primary_key=True)
     hotel_id = db.Column(db.Integer, db.ForeignKey('hotels.id'))
     room_type_id = db.Column(db.Integer, db.ForeignKey('room_types.id'))
+    room_name = db.Column(db.String, nullable=False)
     price_per_night = db.Column(db.Numeric(6,2), nullable=False)
     is_available = db.Column(db.Boolean)
 
     # relationships
     hotel = db.relationship('Hotels', back_populates='rooms')
-    room_type = db.relationship('RoomType', back_populates='rooms')
+    room_type = db.relationship('RoomTypes', back_populates='rooms')
+
 
 class RoomTypes(db.Model, SerializerMixin):
     __tablename__ = 'room_types'
@@ -75,6 +108,7 @@ class RoomTypes(db.Model, SerializerMixin):
 
     # relationships
     rooms = db.relationship('Rooms', back_populates='room_type')
+
 
 class Bookings(db.Model, SerializerMixin, TimestampMixin):
     __tablename__ = 'bookings'
@@ -89,6 +123,7 @@ class Bookings(db.Model, SerializerMixin, TimestampMixin):
     # relationships
     guest = db.relationship('Guests', back_populates='bookings')
 
+
 class Amenities(db.Model, SerializerMixin):
     __tablename__ = 'amenities'
 
@@ -99,6 +134,7 @@ class Amenities(db.Model, SerializerMixin):
     # relationships
     hotel_amenities = db.relationship('HotelAmenities', back_populates='amenity')
 
+
 class HotelAmenities(db.Model, SerializerMixin):
     __tablename__ = 'hotel_amenities'
 
@@ -107,5 +143,5 @@ class HotelAmenities(db.Model, SerializerMixin):
     amenity_id = db.Column(db.Integer, db.ForeignKey('amenities.id'))
 
     # relationships
-    hotel = db.relationship('Hotel', back_populates='hotel_amenities')
+    hotel = db.relationship('Hotels', back_populates='hotel_amenities')
     amenity = db.relationship('Amenities', back_populates='hotel_amenities')

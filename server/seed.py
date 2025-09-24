@@ -76,6 +76,7 @@ if __name__ == '__main__':
             guest = Guests(
                 name = fake.name(),
                 email = fake.email(),
+                _password_hash = "password123"
             )
             guests.append(guest)
 
@@ -118,7 +119,8 @@ if __name__ == '__main__':
 
             a = Admins(
                 name = fake.name(),
-                hotel_id = fake.random_int(min=1, max=20)
+                hotel_id = fake.random_int(min=1, max=20),
+                _password_hash = "password123"
             )
             admins.append(a)
 
@@ -160,8 +162,8 @@ if __name__ == '__main__':
             r = Rooms(
                 hotel_id = randint(1, 20),
                 room_type_id = randint(1, 5),
-                room_number = randint(1, 100),
-                price_per_night = fake.pyfloat(left_digits=6, right_digits=2, min_value=5000, max_value=200000),
+                room_name = f"Room-{randint(100, 999)}",
+                price_per_night = fake.pyfloat(left_digits=6, right_digits=2, min_value=5000, max_value=80000),
                 is_available = fake.pybool()
             )
 
