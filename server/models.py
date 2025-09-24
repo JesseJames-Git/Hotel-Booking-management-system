@@ -82,8 +82,8 @@ class Bookings(db.Model, SerializerMixin, TimestampMixin):
     id = db.Column(db.Integer, primary_key=True)
     guest_id = db.Column(db.Integer, db.ForeignKey('guests.id'))
     room_id = db.Column (db.Integer, db.ForeignKey('rooms.id'))
-    check_in_date = db.Column(db.Datetime, nullable=False)
-    check_out_date = db.Column(db.Datetime, nullable=False)
+    check_in_date = db.Column(db.DateTime, nullable=False)
+    check_out_date = db.Column(db.DateTime, nullable=False)
     status = db.Column(db.String, default='No Reservation')
 
     # relationships
