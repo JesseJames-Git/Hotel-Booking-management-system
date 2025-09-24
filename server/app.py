@@ -8,6 +8,11 @@ from flask_restful import Resource
 # Local imports
 from config import app, db, api
 # Add your model imports
+from routes.hotels import Hotels, HotelById
+from routes.rooms import Rooms
+from routes.bookings import Bookings
+from routes.users import Users
+from models import User, Hotel, Room, Booking
 # Views go here!
 @app.route('/')
 def index():
