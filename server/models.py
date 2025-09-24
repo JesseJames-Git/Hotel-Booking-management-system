@@ -38,7 +38,7 @@ class Hotels(db.Model, SerializerMixin, TimestampMixin):
     phone = db.Column(db.String, nullable=False)
 
     # relationships
-    admin = db.relationship('Admins', back_populates='hotel')
+    admin = db.relationship('Admins', back_populates='hotel', uselist=False)
     rooms = db.relationship('Rooms', back_populates='hotel')
     hotel_amenities = db.relationship('HotelAmenities', back_populates='hotel')
 
@@ -97,7 +97,7 @@ class Amenities(db.Model, SerializerMixin):
     description = db.Column(db.Text)
 
     # relationships
-
+    hotel_amenities = db.relationship('HotelAmenities', back_populates='amenity')
 
 class HotelAmenities(db.Model, SerializerMixin):
     __tablename__ = 'hotel_amenities'
@@ -108,3 +108,4 @@ class HotelAmenities(db.Model, SerializerMixin):
 
     # relationships
     hotel = db.relationship('Hotel', back_populates='hotel_amenities')
+    amenity = db.relationship('Amenities', back_populates='hotel_amenities')
