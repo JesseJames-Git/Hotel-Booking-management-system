@@ -1,6 +1,9 @@
 from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy.ext.associationproxy import association_proxy
+<<<<<<< HEAD
 
+=======
+>>>>>>> ef674dd (Implement admin interface components:)
 from sqlalchemy.ext.hybrid import hybrid_property
 from datetime import datetime, timedelta
 from config import db, bcrypt
@@ -10,7 +13,10 @@ class TimestampMixin:
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow,
                         onupdate=datetime.utcnow)
+<<<<<<< HEAD
 
+=======
+>>>>>>> ef674dd (Implement admin interface components:)
     
  # Models go here!  
 
@@ -23,10 +29,28 @@ class Guests(db.Model, SerializerMixin, TimestampMixin):
     name = db.Column(db.String, nullable=False)
     email = db.Column(db.String, unique=True, nullable=False)
     _password_hash = db.Column(db.String, nullable=False)
+<<<<<<< HEAD
 
+=======
+>>>>>>> ef674dd (Implement admin interface components:)
 
     # relationships
     bookings = db.relationship('Bookings', back_populates='guest')
+
+    # properties
+    @hybrid_property
+    def password_hash(self):
+        return self._password_hash
+    
+    @password_hash.setter
+    def password_hash(self, password):
+        password_hash = bcrypt.generate_password_hash(password.encode('utf-8'))
+        self._password_hash = password_hash.decode('utf-8')
+
+
+    def authenticate(self, password):
+        return bcrypt.check_password_hash(self._password_hash, password.encode('utf-8'))
+
 
     # properties
     @hybrid_property
@@ -146,4 +170,8 @@ class HotelAmenities(db.Model, SerializerMixin):
 
     # relationships
     hotel = db.relationship('Hotels', back_populates='hotel_amenities')
+<<<<<<< HEAD
     amenity = db.relationship('Amenities', back_populates='hotel_amenities')
+=======
+    amenity = db.relationship('Amenities', back_populates='hotel_amenities')
+>>>>>>> ef674dd (Implement admin interface components:)
