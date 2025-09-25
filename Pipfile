@@ -13,6 +13,8 @@ faker = "*"
 flask = "*"
 flask-restful = "*"
 flask-sqlalchemy = "*"
+flask-bcrypt = "*"
+
 
 [requires]
 python_full_version = "3.8.13"

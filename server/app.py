@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 
 # Remote library imports
+
 from flask import Flask, request, jsonify
 from flask_restful import Resource, Api
 from flask_sqlalchemy import SQLAlchemy
+from flask import request
+from flask_restful import Resource
+
 # Local imports
 from config import app, db, api
+
 
 # Import your routes
 from models import Hotel, Guest, Room, Booking  # Make sure this path matches your project structure
@@ -56,6 +61,12 @@ class HotelById(Resource):
         }
         return jsonify(data)
         
+
+# Views go here!
+@app.route('/')
+def index():
+    return '<h1>Project Server</h1>'
+
 
     def put(self, id):
         hotel = Hotel.query.get_or_404(id)
