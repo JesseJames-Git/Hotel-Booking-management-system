@@ -1,5 +1,6 @@
 from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy.ext.associationproxy import association_proxy
+
 from sqlalchemy.ext.hybrid import hybrid_property
 from datetime import datetime, timedelta
 from config import db, bcrypt
@@ -9,6 +10,7 @@ class TimestampMixin:
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow,
                         onupdate=datetime.utcnow)
+
     
  # Models go here!  
 
@@ -22,9 +24,9 @@ class Guests(db.Model, SerializerMixin, TimestampMixin):
     email = db.Column(db.String, unique=True, nullable=False)
     _password_hash = db.Column(db.String, nullable=False)
 
+
     # relationships
     bookings = db.relationship('Bookings', back_populates='guest')
-
 
     # properties
     @hybrid_property
