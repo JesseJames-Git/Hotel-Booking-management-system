@@ -157,15 +157,13 @@ class GuestBookingsResource(Resource):
         return {"message": f"Bookings for guest {guest_id} deleted"}, 200
 
 
-class ReservationListResource(Resource):
-    def get(self):
-        reserved = Bookings.query.filter(
-            Bookings.status.in_(["reserved", "confirmed"])
-        ).all()
-        return [r.to_dict() for r in reserved]
+class BookedRoom(Resource):
+    def get(self, room_name):
+        room = Bookings.query.filter_by(room_name=room_name).first()
+        return make_response(room.to_dict(), 200)
     
 
-# Session management
+# Guest Session management
 class GuestLogin(Resource):
     def post(self):
         data = request.get_json()
@@ -211,7 +209,7 @@ api.add_resource(SingleRoom, "/rooms/<int:id>")
 # Bookings
 api.add_resource(BookingListResource, "/bookings")
 api.add_resource(GuestBookingsResource, "/bookings/guest/<int:guest_id>")
-api.add_resource(ReservationListResource, "/reservations")
+api.add_resource(BookedRoom, "/bookedroom/room_name")
 
 
 if __name__ == '__main__':
