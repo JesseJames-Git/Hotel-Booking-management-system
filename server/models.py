@@ -93,22 +93,27 @@ class Admins(db.Model, SerializerMixin, TimestampMixin):
     serialize_rules = ('-hotel.admin','-_password_hash',)
     
 
-class Rooms(db.Model, SerializerMixin, TimestampMixin):
+class Rooms(db.Model, SerializerMixin):
     __tablename__ = 'rooms'
 
     id = db.Column(db.Integer, primary_key=True)
     hotel_id = db.Column(db.Integer, db.ForeignKey('hotels.id'))
     room_type_id = db.Column(db.Integer, db.ForeignKey('room_types.id'))
     room_name = db.Column(db.String, nullable=False)
-    price_per_night = db.Column(db.Numeric(6,2), nullable=False)
-    is_available = db.Column(db.Boolean)
+    price_per_night = db.Column(db.Numeric(6, 2), nullable=False)
+    is_available = db.Column(db.Boolean, default=True)
 
     # relationships
     hotel = db.relationship('Hotels', back_populates='rooms')
     room_type = db.relationship('RoomTypes', back_populates='rooms')
+    booked_rooms = db.relationship('BookedRoom', back_populates='room')
 
-    # serialize_rules
-    serialize_rules = ('-hotel.rooms', '-room_type.rooms', )
+    #  serialize_rules
+    serialize_rules = (
+        '-hotel.rooms',
+        '-room_type.rooms',
+        '-booked_rooms.room',
+    )
 
 
 class RoomTypes(db.Model, SerializerMixin):
@@ -116,30 +121,45 @@ class RoomTypes(db.Model, SerializerMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     type_name = db.Column(db.String, nullable=False)
-    description  = db.Column(db.Text)
+    description = db.Column(db.Text)
 
     # relationships
     rooms = db.relationship('Rooms', back_populates='room_type')
 
-    # serialize_rules
     serialize_rules = ('-rooms.room_type',)
 
 
-class Bookings(db.Model, SerializerMixin, TimestampMixin):
+class Bookings(db.Model, SerializerMixin):
     __tablename__ = 'bookings'
 
     id = db.Column(db.Integer, primary_key=True)
     guest_id = db.Column(db.Integer, db.ForeignKey('guests.id'))
-    room_id = db.Column (db.Integer, db.ForeignKey('rooms.id'))
     check_in_date = db.Column(db.DateTime, nullable=False)
     check_out_date = db.Column(db.DateTime, nullable=False)
     status = db.Column(db.String, default='No Reservation')
 
     # relationships
     guest = db.relationship('Guests', back_populates='bookings')
+    booked_rooms = db.relationship('BookedRoom', back_populates='booking')
 
     # serialize_rules
-    serialize_rules = ('-guest.bookings',)
+    serialize_rules = (
+        '-guest.bookings',
+        '-booked_rooms.booking',
+    )
+
+class BookedRoom(db.Model, SerializerMixin):
+    __tablename__ = 'booked_rooms'
+
+    booking_id = db.Column(db.Integer, db.ForeignKey('bookings.id'), primary_key=True)
+    room_id = db.Column(db.Integer, db.ForeignKey('rooms.id'), primary_key=True)
+
+    # relationships
+    room = db.relationship('Rooms', back_populates='booked_rooms')
+    booking = db.relationship('Bookings', back_populates='booked_rooms')
+
+    # serialize_rules
+    serialize_rules = ('-room.booked_rooms', '-booking.booked_rooms',)
 
 
 class Amenities(db.Model, SerializerMixin):
