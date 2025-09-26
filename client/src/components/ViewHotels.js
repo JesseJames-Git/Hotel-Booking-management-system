@@ -1,8 +1,11 @@
 import React from 'react'
+import GuestHeader from './GuestHeader'
 
 const ViewHotels = () => {
   return (
-    <div>ViewHotels</div>
+    <div>
+      <GuestHeader />
+    </div>
   )
 }
 

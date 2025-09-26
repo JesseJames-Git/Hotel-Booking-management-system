@@ -39,6 +39,9 @@ class Guests(db.Model, SerializerMixin, TimestampMixin):
 
     def authenticate(self, password):
         return bcrypt.check_password_hash(self._password_hash, password.encode('utf-8'))
+    
+    # serialization rules
+    serialize_rules = ('-bookings.guest', '-_password_hash',)
 
 
 class Hotels(db.Model, SerializerMixin, TimestampMixin):
@@ -56,6 +59,9 @@ class Hotels(db.Model, SerializerMixin, TimestampMixin):
     admin = db.relationship('Admins', back_populates='hotel', uselist=False)
     rooms = db.relationship('Rooms', back_populates='hotel')
     hotel_amenities = db.relationship('HotelAmenities', back_populates='hotel')
+
+    # serialize_rules
+    serialize_rules = ('-admin.hotel', '-rooms.hotel', '-hotel_amenities.hotel',)
 
 
 class Admins(db.Model, SerializerMixin, TimestampMixin):
@@ -83,6 +89,9 @@ class Admins(db.Model, SerializerMixin, TimestampMixin):
     def authenticate(self, password):
         return bcrypt.check_password_hash(self._password_hash, password.encode('utf-8'))
     
+    # serialize_rules
+    serialize_rules = ('-hotel.admin','-_password_hash',)
+    
 
 class Rooms(db.Model, SerializerMixin, TimestampMixin):
     __tablename__ = 'rooms'
@@ -98,6 +107,9 @@ class Rooms(db.Model, SerializerMixin, TimestampMixin):
     hotel = db.relationship('Hotels', back_populates='rooms')
     room_type = db.relationship('RoomTypes', back_populates='rooms')
 
+    # serialize_rules
+    serialize_rules = ('-hotel.rooms', '-room_type.rooms', )
+
 
 class RoomTypes(db.Model, SerializerMixin):
     __tablename__ = 'room_types'
@@ -108,6 +120,9 @@ class RoomTypes(db.Model, SerializerMixin):
 
     # relationships
     rooms = db.relationship('Rooms', back_populates='room_type')
+
+    # serialize_rules
+    serialize_rules = ('-rooms.room_type',)
 
 
 class Bookings(db.Model, SerializerMixin, TimestampMixin):
@@ -123,6 +138,9 @@ class Bookings(db.Model, SerializerMixin, TimestampMixin):
     # relationships
     guest = db.relationship('Guests', back_populates='bookings')
 
+    # serialize_rules
+    serialize_rules = ('-guest.bookings',)
+
 
 class Amenities(db.Model, SerializerMixin):
     __tablename__ = 'amenities'
@@ -133,6 +151,9 @@ class Amenities(db.Model, SerializerMixin):
 
     # relationships
     hotel_amenities = db.relationship('HotelAmenities', back_populates='amenity')
+
+    # serialize_rules
+    serialize_rules =('-hotel_amenities.amenity',)
 
 
 class HotelAmenities(db.Model, SerializerMixin):
@@ -145,3 +166,6 @@ class HotelAmenities(db.Model, SerializerMixin):
     # relationships
     hotel = db.relationship('Hotels', back_populates='hotel_amenities')
     amenity = db.relationship('Amenities', back_populates='hotel_amenities')
+
+    # serialize_rules
+    serialize_rules = ('-amenity.hotel_amenities', '-hotel.hotel_amenities',)
