@@ -1,45 +1,35 @@
 import React, { useEffect, useState } from "react";
-import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
-
-import Reservations from "./Reservations";
-import Rooms from "./Rooms";
-import Hotels from "./Hotels";
+import GuestHomePage from "./GuestHomePage";
 
 function App() {
-  return (
-    <Router>
-      <div>
-        <nav>
-          <ul>
-            <li>
-              <Link to="/reservations">Reservations</Link>
-            </li>
-            <li>
-              <Link to="/rooms">Rooms</Link>
-            </li>
-            <li>
-              <Link to="/hotels">Hotels</Link>
-            </li>
-          </ul>
-        </nav>
+  const [guest, setGuest] = useState({})
+  const [my_bookings, setBookings] = useState([])
+  
+  useEffect(() =>{
+    fetch('/guest')
+    .then((r) => r.json())
+    .then((data) => setGuest(data))
+  }, [])
 
-        <Switch>
-          <Route path="/reservations">
-            <Reservations />
-          </Route>
-          <Route path="/rooms">
-            <Rooms />
-          </Route>
-          <Route path="/hotels">
-            <Hotels />
-          </Route>
-          <Route path="/">
-            <h1>Project Client</h1>
-          </Route>
-        </Switch>
-      </div>
-    </Router>
-  );
+  useEffect(()=>{
+    fetch('/my_bookings')
+    .then(r => r.json())
+    .then(data =>{
+      console.log("Fetched bookings:", data)
+       setBookings(data)
+      })
+  },[])
+
+ 
+  return(
+    <div>
+      <h1>Hotel Booking Management App</h1>
+      <GuestHomePage 
+        guest = {guest}
+        my_bookings = {my_bookings}
+      />
+    </div>
+  )
 }
 
 export default App;
