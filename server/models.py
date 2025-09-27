@@ -115,6 +115,8 @@ class Rooms(db.Model, SerializerMixin):
         '-booked_rooms.room',
     )
 
+    # association proxy
+    bookings = association_proxy('booked_rooms', 'booking')
 
 class RoomTypes(db.Model, SerializerMixin):
     __tablename__ = 'room_types'
@@ -142,11 +144,15 @@ class Bookings(db.Model, SerializerMixin):
     guest = db.relationship('Guests', back_populates='bookings')
     booked_rooms = db.relationship('BookedRoom', back_populates='booking')
 
+    # association proxy
+    rooms = association_proxy('booked_rooms', 'room')
+
     # serialize_rules
     serialize_rules = (
         '-guest.bookings',
         '-booked_rooms.booking',
     )
+
 
 class BookedRoom(db.Model, SerializerMixin):
     __tablename__ = 'booked_rooms'

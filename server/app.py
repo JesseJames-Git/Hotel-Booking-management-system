@@ -1,47 +1,52 @@
 from flask import request, jsonify, make_response
 from config import app, db, api, Resource, session
-from models import Hotels, Guests, Rooms, Bookings
+from models import Hotels, Guests, Rooms, Bookings, BookedRoom
 from datetime import datetime
 
-# Hotel Resources
-class HotelsList(Resource):
-    def get(self):
-        return [h.to_dict() for h in Hotels.query.all()]
+def is_room_available(room_id: int, check_in: datetime, check_out: datetime) -> bool:
+    conflict = (
+        Bookings.query
+        .join(BookedRoom)
+        .filter(
+            BookedRoom.room_id == room_id,
+            Bookings.check_in_date < check_out,
+            Bookings.check_out_date > check_in
+        )
+        .first()
+    )
+    return conflict is None
 
+
+# --------------------------------------Resources-----------------------------------------
+
+# Guest Session management
+class GuestLogin(Resource):
     def post(self):
         data = request.get_json()
-        hotel = Hotels(
-            name=data.get("name"),
-            address=data.get("address"),
-            city=data.get("city"),
-            country=data.get("country"),
-            phone=data.get("phone"),
-            email=data.get("email"),
-        )
-        db.session.add(hotel)
-        db.session.commit()
-        return hotel.to_dict(), 201
+        guest = Guests.query.filter_by(email=data.get('email')).first()
 
+        if guest and guest.authenticate(data.get('password')):
+            session['guest.id'] = guest.id
+            return make_response({'message': 'Login sucessful', 'guest':guest.to_dict()}, 200)
+        else:
+            return make_response({'Error 401': 'Invalid Email or Password'}, 401)
 
-class SingleHotel(Resource):
-    def get(self, id):
-        hotel = Hotels.query.get_or_404(id)
-        return hotel.to_dict()
+class CheckGuestSession(Resource):
+    def get(self):
+        valid_guest = Guests.query.filter(Guests.id == 2).first()
 
-    def put(self, id):
-        hotel = Hotels.query.get_or_404(id)
-        data = request.get_json()
-        for key, value in data.items():
-            setattr(hotel, key, value)
-        db.session.commit()
-        return hotel.to_dict()
-
-    def delete(self, id):
-        hotel = Hotels.query.get_or_404(id)
-        db.session.delete(hotel)
-        db.session.commit()
-        return {"message": f"Hotel {id} deleted"}, 200
+        if valid_guest:
+            return make_response(valid_guest.to_dict(), 200)
+        else:
+            return make_response({'message':'401: Not authorized'}, 401)
+        
+class GuestLogout(Resource):
+    def delete(self):
+        session['guest.id'] = None
+        return make_response({'message': '204: No Content'}, 204)
     
+    
+
 # Guests Resources
 class GuestsList(Resource):
     def get(self):
@@ -79,6 +84,8 @@ class SingleGuest(Resource):
         db.session.commit()
         return {"message": f"Guest {id} deleted"}, 200
     
+    
+
 # Room Resources
 class RoomsList(Resource):
     def get(self):
@@ -111,12 +118,15 @@ class SingleRoom(Resource):
         room = Rooms.query.get_or_404(id)
         db.session.delete(room)
         db.session.commit()
-        return {"message": f"Room {id} deleted"}, 200
+        return make_response({"message": f"Room {id} deleted"}, 200)
     
+    
+
 # Booking Resources
 class BookingListResource(Resource):
     def get(self):
-        return [b.to_dict() for b in Bookings.query.all()]
+        return [b.to_dict() 
+                for b in Bookings.query.all()]
 
     def post(self):
         data = request.get_json()
@@ -129,16 +139,28 @@ class BookingListResource(Resource):
         )
         db.session.add(booking)
         db.session.commit()
-        return booking.to_dict(), 201
+        return make_response(booking.to_dict(), 201)
 
-class GuestBookingsResource(Resource):
-    def get(self, guest_id):
-        bookings = Bookings.query.filter_by(guest_id=guest_id).all()
-        return [b.to_dict() for b in bookings]
+class GuestBookings(Resource):
+    def get(self):
 
-    def patch(self, guest_id):
+        guest_id = session.get("guest_id") or 2 
+        if not guest_id:
+            return {"error": "Unauthorized"}, 401
+
         bookings = Bookings.query.filter_by(guest_id=guest_id).all()
+
+        data = [b.to_dict(only=('id','rooms.hotel.name', 'rooms.room_name','rooms.room_type.type_name','check_in_date','check_out_date','status',))
+                for b in bookings]
+        return make_response(jsonify(data), 200)
+    
+    def patch(self):
+        guest_id = session['guest.id']
+
+        bookings = Bookings.query.filter_by(guest_id=guest_id).all()
+
         data = request.get_json()
+
         for booking in bookings:
             for key, value in data.items():
                 if hasattr(booking, key):
@@ -147,48 +169,60 @@ class GuestBookingsResource(Resource):
                     else:
                         setattr(booking, key, value)
         db.session.commit()
-        return [b.to_dict() for b in bookings]
+        return make_response(jsonify([b.to_dict() for b in bookings]), 200)
 
-    def delete(self, guest_id):
+    def delete(self):
+        guest_id = session['guest.id']
+
         bookings = Bookings.query.filter_by(guest_id=guest_id).all()
+
         for booking in bookings:
             db.session.delete(booking)
         db.session.commit()
-        return {"message": f"Bookings for guest {guest_id} deleted"}, 200
+
+        return make_response({"message": f"Bookings for guest {guest_id} deleted"}, 200)
 
 
-class BookedRoom(Resource):
-    def get(self, room_name):
-        room = Bookings.query.filter_by(room_name=room_name).first()
-        return make_response(room.to_dict(), 200)
-    
 
-# Guest Session management
-class GuestLogin(Resource):
+# Hotel Resources
+class HotelsList(Resource):
+    def get(self):
+        return [h.to_dict() for h in Hotels.query.all()]
+
     def post(self):
         data = request.get_json()
-        guest = Guests.query.filter_by(email=data.get('email')).first()
+        hotel = Hotels(
+            name=data.get("name"),
+            address=data.get("address"),
+            city=data.get("city"),
+            country=data.get("country"),
+            phone=data.get("phone"),
+            email=data.get("email"),
+        )
+        db.session.add(hotel)
+        db.session.commit()
+        return hotel.to_dict(), 201
 
-        if guest and guest.authenticate(data.get('password')):
-            session['guest.id'] = guest.id
-            return make_response({'message': 'Login sucessful', 'guest':guest.to_dict()}, 200)
-        else:
-            return make_response({'Error 401': 'Invalid Email or Password'}, 401)
+class SingleHotel(Resource):
+    def get(self, id):
+        hotel = Hotels.query.get_or_404(id)
+        return hotel.to_dict()
 
-class CheckGuestSession(Resource):
-    def get(self):
-        valid_guest = Guests.query.filter(Guests.id == session['guest.id']).first()
+    def put(self, id):
+        hotel = Hotels.query.get_or_404(id)
+        data = request.get_json()
+        for key, value in data.items():
+            setattr(hotel, key, value)
+        db.session.commit()
+        return hotel.to_dict()
 
-        if valid_guest:
-            return make_response(valid_guest.to_dict(), 200)
-        else:
-            return make_response({'message':'401: Not authorized'}, 401)
-        
-class GuestLogout(Resource):
-    def delete(self):
-        session['guest.id'] = None
-        return make_response({'message': '204: No Content'}, 204)
-    
+    def delete(self, id):
+        hotel = Hotels.query.get_or_404(id)
+        db.session.delete(hotel)
+        db.session.commit()
+        return {"message": f"Hotel {id} deleted"}, 200
+
+# -----------------------------------Routes--------------------------------------
 
 # Hotels
 api.add_resource(HotelsList, "/hotels")
@@ -198,7 +232,7 @@ api.add_resource(SingleHotel, "/hotels/<int:id>")
 api.add_resource(GuestsList, "/guests")
 api.add_resource(SingleGuest, "/guests/<int:id>")
 api.add_resource(GuestLogin, "/guests/login")
-api.add_resource(CheckGuestSession, "/guests/checkguestsession")
+api.add_resource(CheckGuestSession, "/guest")
 api.add_resource(GuestLogout, "/guests/logout")
 
 
@@ -208,8 +242,8 @@ api.add_resource(SingleRoom, "/rooms/<int:id>")
 
 # Bookings
 api.add_resource(BookingListResource, "/bookings")
-api.add_resource(GuestBookingsResource, "/bookings/guest/<int:guest_id>")
-api.add_resource(BookedRoom, "/bookedroom/room_name")
+api.add_resource(GuestBookings, "/my_bookings")
+
 
 
 if __name__ == '__main__':

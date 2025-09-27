@@ -1,29 +1,32 @@
 import React, { useEffect, useState } from "react";
-import { Switch, Route } from "react-router-dom";
 import GuestHomePage from "./GuestHomePage";
 
 function App() {
   const [guest, setGuest] = useState({})
-  const [bookings, setBookings] = useState([])
+  const [my_bookings, setBookings] = useState([])
   
   useEffect(() =>{
-    fetch('/guests/id')
+    fetch('/guest')
     .then((r) => r.json())
     .then((data) => setGuest(data))
   }, [])
 
   useEffect(()=>{
-    fetch('/bookings/guest/id')
+    fetch('/my_bookings')
     .then(r => r.json())
-    .then(data => setBookings(data))
-  })
+    .then(data =>{
+      console.log("Fetched bookings:", data)
+       setBookings(data)
+      })
+  },[])
 
+ 
   return(
     <div>
       <h1>Hotel Booking Management App</h1>
       <GuestHomePage 
         guest = {guest}
-        bookings = {bookings}
+        my_bookings = {my_bookings}
       />
     </div>
   )
