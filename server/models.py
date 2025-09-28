@@ -39,7 +39,7 @@ class Guests(db.Model, SerializerMixin, TimestampMixin):
 
     def authenticate(self, password):
         return bcrypt.check_password_hash(self._password_hash, password.encode('utf-8'))
-    
+
     # serialization rules
     serialize_rules = ('-bookings.guest', '-_password_hash',)
 
@@ -90,10 +90,9 @@ class Admins(db.Model, SerializerMixin, TimestampMixin):
 
     def authenticate(self, password):
         return bcrypt.check_password_hash(self._password_hash, password.encode('utf-8'))
-    
-    # serialize_rules
-    serialize_rules = ('-hotel.admin','-_password_hash',)
-    
+
+    serialize_rules = ('-hotel.admin', '-_password_hash',)
+
 
 class Rooms(db.Model, SerializerMixin):
     __tablename__ = 'rooms'
@@ -153,6 +152,7 @@ class Rooms(db.Model, SerializerMixin):
     # association proxy
     bookings = association_proxy('booked_rooms', 'booking')
 
+
 class RoomTypes(db.Model, SerializerMixin):
     __tablename__ = 'room_types'
 
@@ -177,9 +177,9 @@ class Bookings(db.Model, SerializerMixin):
     status = db.Column(db.String, default='No Reservation') 
 
     guest = db.relationship('Guests', back_populates='bookings')
-    booked_rooms = db.relationship('BookedRoom', back_populates='booking')
+    booked_rooms = db.relationship('BookedRoom', back_populates='booking',
+                                   cascade="all, delete-orphan")
 
-    # association proxy
     rooms = association_proxy('booked_rooms', 'room')
 
     serialize_rules = (
@@ -231,8 +231,7 @@ class Amenities(db.Model, SerializerMixin):
     hotel_amenities = db.relationship('HotelAmenities', back_populates='amenity',
                                       cascade="all, delete-orphan")
 
-    # serialize_rules
-    serialize_rules =('-hotel_amenities.amenity',)
+    serialize_rules = ('-hotel_amenities.amenity',)
 
 
 class HotelAmenities(db.Model, SerializerMixin):
@@ -245,5 +244,4 @@ class HotelAmenities(db.Model, SerializerMixin):
     hotel = db.relationship('Hotels', back_populates='hotel_amenities')
     amenity = db.relationship('Amenities', back_populates='hotel_amenities')
 
-    # serialize_rules
     serialize_rules = ('-amenity.hotel_amenities', '-hotel.hotel_amenities',)

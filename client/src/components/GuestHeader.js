@@ -1,9 +1,9 @@
 import React from 'react'
 
-const GuestHeader = () => {
+const GuestHeader = ({guest}) => {
   return (
     <div>
-      <h1>Welcome {}</h1>
+      <h2>Welcome {guest.name}</h2>
       <div>
         <button>Home</button>
         <button>View Hotels</button>

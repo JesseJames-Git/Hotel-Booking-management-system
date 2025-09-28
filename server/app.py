@@ -26,7 +26,7 @@ class GuestLogin(Resource):
         guest = Guests.query.filter_by(email=data.get('email')).first()
 
         if guest and guest.authenticate(data.get('password')):
-            session['guest.id'] = guest.id
+            session['guest_id'] = guest.id
             return make_response({'message': 'Login sucessful', 'guest':guest.to_dict()}, 200)
         else:
             return make_response({'Error 401': 'Invalid Email or Password'}, 401)
@@ -42,7 +42,7 @@ class CheckGuestSession(Resource):
         
 class GuestLogout(Resource):
     def delete(self):
-        session['guest.id'] = None
+        session.pop('guest_id', None)
         return make_response({'message': '204: No Content'}, 204)
     
     
@@ -154,33 +154,51 @@ class GuestBookings(Resource):
                 for b in bookings]
         return make_response(jsonify(data), 200)
     
-    def patch(self):
-        guest_id = session['guest.id']
+class BookingById(Resource):
+    def patch(self, booking_id):
+        guest_id = session.get("guest_id") or 2
 
-        bookings = Bookings.query.filter_by(guest_id=guest_id).all()
+        booking = Bookings.query.filter_by(id=booking_id, guest_id=guest_id).first()
+        if not booking:
+            return {"error": "Booking not found or unauthorized"}, 404
 
         data = request.get_json()
 
-        for booking in bookings:
-            for key, value in data.items():
-                if hasattr(booking, key):
-                    if key in ["check_in", "check_out"]:
+        for key, value in data.items():
+            if hasattr(booking, key):
+                if key in ["check_in_date", "check_out_date"]:
+                    try:
                         setattr(booking, key, datetime.fromisoformat(value))
-                    else:
-                        setattr(booking, key, value)
-        db.session.commit()
-        return make_response(jsonify([b.to_dict() for b in bookings]), 200)
+                    except ValueError:
+                        return {"error": f"Invalid date format for {key}"}, 400
+                else:
+                    setattr(booking, key, value)
 
-    def delete(self):
-        guest_id = session['guest.id']
+        db.session.commit()
+        return make_response(jsonify(booking.to_dict(only=(
+            'id','rooms.hotel.name', 'rooms.room_name','rooms.room_type.type_name','check_in_date','check_out_date','status',)
+        )), 200)
+
+    def delete(self, booking_id):
+        guest_id = session.get("guest_id") or 2
+
+        booking = Bookings.query.filter_by(id=booking_id, guest_id=guest_id).first()
+        if not booking:
+            return {"error": "Booking not found or unauthorized"}, 404
+
+        db.session.delete(booking)
+        db.session.commit()
 
         bookings = Bookings.query.filter_by(guest_id=guest_id).all()
-
-        for booking in bookings:
-            db.session.delete(booking)
-        db.session.commit()
-
-        return make_response({"message": f"Bookings for guest {guest_id} deleted"}, 200)
+        data = [
+            b.to_dict(only=(
+                'id','rooms.hotel.name','rooms.room_name',
+                'rooms.room_type.type_name','check_in_date',
+                'check_out_date','status',
+            ))
+            for b in bookings
+        ]
+        return make_response(jsonify(data), 200)
 
 
 
@@ -243,6 +261,7 @@ api.add_resource(SingleRoom, "/rooms/<int:id>")
 # Bookings
 api.add_resource(BookingListResource, "/bookings")
 api.add_resource(GuestBookings, "/my_bookings")
+api.add_resource(BookingById, "/bookings/<int:booking_id>")
 
 
 
