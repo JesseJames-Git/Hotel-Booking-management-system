@@ -26,6 +26,7 @@ function App() {
       <h1>Hotel Booking Management App</h1>
       <GuestHomePage 
         guest = {guest}
+        setBookings = {setBookings}
         my_bookings = {my_bookings}
       />
     </div>
