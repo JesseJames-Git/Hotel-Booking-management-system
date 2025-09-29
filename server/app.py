@@ -46,7 +46,6 @@ class GuestLogout(Resource):
         return make_response({'message': '204: No Content'}, 204)
     
     
-
 # Guests Resources
 class GuestsList(Resource):
     def get(self):
