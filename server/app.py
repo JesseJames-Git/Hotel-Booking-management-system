@@ -204,7 +204,14 @@ class BookingById(Resource):
 # Hotel Resources
 class HotelsList(Resource):
     def get(self):
-        return [h.to_dict() for h in Hotels.query.all()]
+        return [h.to_dict(only=(
+            "name",
+            "address",
+            "city",
+            "country",
+            "email",
+            "phone"
+        ))for h in Hotels.query.all()]
 
     def post(self):
         data = request.get_json()
@@ -223,7 +230,17 @@ class HotelsList(Resource):
 class SingleHotel(Resource):
     def get(self, id):
         hotel = Hotels.query.get_or_404(id)
-        return hotel.to_dict()
+        return make_response(hotel.to_dict(only=(
+            "name",
+            "address",
+            "city",
+            "country",
+            "email",
+            "phone",
+            "rooms.is_available",
+            "rooms.booked_rooms.booking.status",
+            "hotel_amenities"
+        )), 200)
 
     def put(self, id):
         hotel = Hotels.query.get_or_404(id)
@@ -238,6 +255,7 @@ class SingleHotel(Resource):
         db.session.delete(hotel)
         db.session.commit()
         return {"message": f"Hotel {id} deleted"}, 200
+        
 
 # -----------------------------------Routes--------------------------------------
 

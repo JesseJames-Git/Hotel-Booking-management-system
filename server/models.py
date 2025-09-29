@@ -1,8 +1,9 @@
 from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
-from datetime import datetime
-from config import db, bcrypt
+from config import db, bcrypt, datetime, event
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy import and_
 
 
 class TimestampMixin:
@@ -117,6 +118,29 @@ class Rooms(db.Model, SerializerMixin):
     # association proxy
     bookings = association_proxy('booked_rooms', 'booking')
 
+    @hybrid_property
+    def currently_available(self):
+        from datetime import datetime
+        now = datetime.utcnow()
+        active_booking = any(
+            b.check_in_date <= now < b.check_out_date
+            for b in self.bookings
+        )
+        return not active_booking
+
+    @currently_available.expression
+    def currently_available(cls):
+        from datetime import datetime
+        now = datetime.utcnow()
+        return ~db.exists().where(
+            and_(
+                BookedRoom.room_id == cls.id,
+                Bookings.id == BookedRoom.booking_id,
+                Bookings.check_in_date <= now,
+                Bookings.check_out_date > now,
+            )
+        )
+
 
 class RoomTypes(db.Model, SerializerMixin):
     __tablename__ = 'room_types'
@@ -162,6 +186,27 @@ class BookedRoom(db.Model, SerializerMixin):
     booking = db.relationship('Bookings', back_populates='booked_rooms')
 
     serialize_rules = ('-room.booked_rooms', '-booking.booked_rooms',)
+
+#--------------------event listeners----------------------
+
+@event.listens_for(BookedRoom, "after_insert")
+def mark_room_unavailable(mapper, connection, target):
+    connection.execute(
+        Rooms.__table__.update()
+        .where(Rooms.id == target.room_id)
+        .values(is_available=False)
+    )
+
+
+
+@event.listens_for(BookedRoom, "after_delete")
+def mark_room_available(mapper, connection, target):
+    connection.execute(
+        Rooms.__table__.update()
+        .where(Rooms.id == target.room_id)
+        .values(is_available=True)
+    )
+
 
 
 class Amenities(db.Model, SerializerMixin):

@@ -8,6 +8,7 @@ from faker import Faker
 
 # Local imports
 from app import app
+from config import timedelta
 from models import (
     db,
     Guests, 
@@ -20,8 +21,8 @@ from models import (
     RoomTypes, 
     BookedRoom,
     datetime, 
-    timedelta
 )
+
 
 if __name__ == '__main__':
     fake = Faker()
