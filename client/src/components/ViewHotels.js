@@ -1,25 +1,23 @@
-import React, {useState, useEffect}from 'react'
-import GuestHeader from './GuestHeader'
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 
 const ViewHotels = () => {
+  const [hotels, setHotels] = useState([]);
 
-  const [hotels, setHotels] = useState([])
-
-  useEffect(()=>{
+  useEffect(() => {
     fetch("/hotels")
-    .then((r) => (r.json()))
-    .then((d) => setHotels(d))
-  },[])
-
+      .then((r) => r.json())
+      .then((d) => setHotels(d));
+  }, []);
 
   return (
     <div>
-      <GuestHeader />
       <h1>Hotels!!!</h1>
       <p>Here is a list of all Hotels!!!</p>
+
       <ul>
-        {hotels.map((h) =>(
-          <li onClick={hotelSelection} key={h.id} className='hotelList'>
+        {hotels.map((h) => (
+          <li key={h.id} className="hotelList">
             <p>Name: {h.name}</p>
             <p>City: {h.city}</p>
             <p>Country: {h.country}</p>
@@ -27,13 +25,17 @@ const ViewHotels = () => {
             <p>Email: {h.email}</p>
             <p>Phone Number: {h.phone}</p>
 
-            <button onClick={viewFullDetails}>View Full Details</button>
-            <button onClick={bookingForm}>Booking Now</button>
+            <Link to={`/hotels/${h.id}`}>
+              <button>View Full Details</button>
+            </Link>
+            
+            <Link>
+            </Link>
           </li>
         ))}
       </ul>
     </div>
-  )
-}
+  );
+};
 
-export default ViewHotels
+export default ViewHotels;

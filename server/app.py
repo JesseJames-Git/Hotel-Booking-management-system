@@ -205,6 +205,7 @@ class BookingById(Resource):
 class HotelsList(Resource):
     def get(self):
         return [h.to_dict(only=(
+            "id",
             "name",
             "address",
             "city",
@@ -231,14 +232,17 @@ class SingleHotel(Resource):
     def get(self, id):
         hotel = Hotels.query.get_or_404(id)
         return make_response(hotel.to_dict(only=(
+            "id",
             "name",
             "address",
             "city",
             "country",
             "email",
             "phone",
+            "rooms.room_name",
+            "rooms.room_type",
+            "rooms.price_per_night",
             "rooms.is_available",
-            "rooms.booked_rooms.booking.status",
             "hotel_amenities"
         )), 200)
 
