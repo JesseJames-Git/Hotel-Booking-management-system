@@ -1,27 +1,19 @@
 import React from 'react';
 import { Link, useHistory } from 'react-router-dom';
-import GuestHomePage from './GuestHomePage'; // Your provided component
+import GuestHomePage from './GuestHomePage';
 
 const useAuth = () => {
-  // In a real application, replace this with actual state from Context or Redux.
   const [currentUser, setCurrentUser] = React.useState(null);
   const [currentBookings, setCurrentBookings] = React.useState([]);
 
-  // Mock function to simulate a login/logout
   const login = (userData) => {
     setCurrentUser(userData);
-    // In a real scenario, you'd fetch their bookings/data here
   };
 
   const logout = () => {
     setCurrentUser(null);
     setCurrentBookings([]);
   };
-
-  // Example: Use a dummy user for testing the GuestHomePage render
-  // React.useEffect(() => {
-  //   login({ id: 1, name: 'Test Guest', email: 'test@guest.com', role: 'guest' });
-  // }, []);
 
   return {
     user: currentUser,
@@ -36,21 +28,16 @@ const useAuth = () => {
 // =================================================================
 
 const StartingPage = () => {
-  // Access the authentication state
   const { user, isGuest, isAdmin, my_bookings, setBookings, logout } = useAuth();
   const history = useHistory();
 
-  // Redirect Logic for Admin: If an Admin is logged in, send them to their home page
   React.useEffect(() => {
     if (isAdmin) {
-      // Replaces the current entry in the history stack
       history.replace('/admin/home'); 
     }
   }, [isAdmin, history]);
 
-  // Handle case where a GUEST is logged in
   if (isGuest) {
-    // Show the GuestHomePage component directly if a Guest is logged in.
     return (
       <div className="guest-portal-wrapper">
         <div style={{ padding: '10px', textAlign: 'right' }}>
@@ -81,7 +68,7 @@ const StartingPage = () => {
               padding: '10px 20px', 
               fontSize: '16px', 
               cursor: 'pointer', 
-              backgroundColor: '#4CAF50', 
+              backgroundColor: '#008CBA', 
               color: 'white', 
               border: 'none', 
               borderRadius: '6px',
@@ -95,7 +82,7 @@ const StartingPage = () => {
               padding: '10px 20px', 
               fontSize: '16px', 
               cursor: 'pointer', 
-              backgroundColor: '#008CBA', 
+              backgroundColor: '#4CAF50', 
               color: 'white', 
               border: 'none', 
               borderRadius: '6px',

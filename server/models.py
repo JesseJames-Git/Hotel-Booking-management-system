@@ -71,7 +71,7 @@ class Admins(db.Model, SerializerMixin, TimestampMixin):
     __tablename__ = 'admins'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, nullable=False)
+    name = db.Column(db.String, unique=True,nullable=False)
     _password_hash = db.Column(db.String, nullable=False)
     hotel_id = db.Column(db.Integer, db.ForeignKey('hotels.id'))
 

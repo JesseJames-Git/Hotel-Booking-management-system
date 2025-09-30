@@ -1,109 +1,121 @@
-import React, { useState } from 'react';
-import { Link, useHistory } from 'react-router-dom';
+import React, { useState } from 'react'
+import { Link, useHistory } from 'react-router-dom'
+import { Formik, Form, Field, ErrorMessage } from 'formik'
+import * as yup from 'yup' 
 
-const HotelAdminLogin = ({ onAdminLogin }) => {
-  const [name, setName] = useState(''); // Assuming Admin login uses 'name' as identifier
-  const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const history = useHistory();
+// --- Yup Validation Schema ---
+const AdminLoginSchema = yup.object().shape({
+  name: yup.string().required('Admin Name is required.'),
+  password: yup.string().required('Password is required.'),
+})
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setErrors([]);
 
-    // 1. Send credentials to the backend
-    fetch("/admin/login", { // Adjust endpoint as necessary
+const HotelAdminSignIn = ({ onAdminLogin }) => {
+  const [submissionError, setSubmissionError] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const history = useHistory()
+
+  const initialValues = {
+    name: '',
+    password: '',
+  }
+
+  const handleSubmit = (values) => {
+    setIsLoading(true)
+    setSubmissionError(null)
+
+    fetch("/admin/login", { 
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ name, password }), // Assuming name is the identifier
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(values),
     })
       .then((res) => {
-        setIsLoading(false);
+        setIsLoading(false)
         if (res.ok) {
           return res.json().then((adminUser) => {
-            // 2. Call the prop function to update the global auth state
-            // (In a real app, this would come from a Context Provider)
             if (onAdminLogin) {
-              onAdminLogin({ ...adminUser, role: 'admin' });
+              onAdminLogin({ ...adminUser, role: 'admin' })
             }
-
-            // 3. Redirect to the Admin Home Page (as set in your HomePage logic)
-            history.push("/admin/home");
-          });
+            history.push("/admin/home") 
+          })
         } else {
-          // Handle specific errors from the backend (e.g., Invalid credentials)
-          res.json().then((err) => setErrors([err.message || 'Login failed. Please check your credentials.']));
+          res.json().then((err) => {
+            setSubmissionError(err.message || 'Invalid admin name or password.')
+          }).catch(() => {
+            setSubmissionError('Server returned an unknown error.')
+          })
         }
       })
       .catch(() => {
-        setIsLoading(false);
-        setErrors(['Network error or server unreachable.']);
-      });
-  };
+        setIsLoading(false)
+        setSubmissionError('Network error or server unreachable.')
+      })
+  }
 
   return (
     <div style={styles.container}>
-      <h2 style={styles.header}>Admin Sign In</h2>
-      <form onSubmit={handleSubmit} style={styles.form}>
-        <label htmlFor="admin-name" style={styles.label}>Name/Username</label>
-        <input
-          type="text"
-          id="admin-name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-          style={styles.input}
-        />
+      <h2 style={{...styles.header, color: '#f44336'}}>Hotel Admin Login 🛠️</h2>
 
-        <label htmlFor="admin-password" style={styles.label}>Password</label>
-        <input
-          type="password"
-          id="admin-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={styles.input}
-        />
+      <Formik
+        initialValues={initialValues}
+        validationSchema={AdminLoginSchema}
+        onSubmit={(values) => handleSubmit(values)}
+      >
+        {({ isSubmitting }) => (
+          <Form style={styles.form}>
+            
+            {/* Admin Name Field */}
+            <label htmlFor="name" style={styles.label}>Admin Name/Username</label>
+            <Field type="text" id="name" name="name" style={styles.input} />
+            <ErrorMessage name="name" component="div" style={styles.errorMessageField} />
 
-        <button type="submit" disabled={isLoading} style={styles.button}>
-          {isLoading ? 'Logging in...' : 'Sign In'}
-        </button>
+            {/* Password Field */}
+            <label htmlFor="password" style={styles.label}>Password</label>
+            <Field type="password" id="password" name="password" style={styles.input} />
+            <ErrorMessage name="password" component="div" style={styles.errorMessageField} />
 
-        {errors.length > 0 && (
-          <div style={styles.errorContainer}>
-            {errors.map((err, index) => (
-              <p key={index} style={styles.errorMessage}>{err}</p>
-            ))}
-          </div>
+            <button 
+              type="submit" 
+              disabled={isSubmitting || isLoading} 
+              style={{...styles.button, backgroundColor: '#f44336'}}
+            >
+              {isLoading || isSubmitting ? 'Logging in...' : 'Sign In'}
+            </button>
+
+            {submissionError && (
+              <div style={styles.errorContainer}>
+                <p style={styles.errorMessage}>Error: {submissionError}</p>
+              </div>
+            )}
+          </Form>
         )}
-      </form>
+      </Formik>
+
       <p style={styles.footer}>
-        <Link to="/">Back to Home</Link>
+        New admin? <Link to="/admin/signup" style={{color: '#f44336', fontWeight: 'bold'}}>Register here</Link>
+      </p>
+      <p style={styles.footer}>
+        <Link to="/" style={{color: '#666'}}>Back to Home</Link>
       </p>
     </div>
-  );
-};
+  )
+}
 
-export default HotelAdminLogin;
+export default HotelAdminSignIn
 
-// Basic inline styles (reused from Guest component, adjusted colors)
 const styles = {
     container: {
-        maxWidth: '400px',
+        maxWidth: '450px',
         margin: '50px auto',
-        padding: '20px',
-        border: '1px solid #ccc',
-        borderRadius: '8px',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        padding: '30px',
+        border: '1px solid #e0e0e0',
+        borderRadius: '12px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+        backgroundColor: '#fff',
     },
     header: {
         textAlign: 'center',
-        marginBottom: '20px',
-        color: '#f44336', // Admin color
+        marginBottom: '25px',
     },
     form: {
         display: 'flex',
@@ -111,40 +123,50 @@ const styles = {
     },
     label: {
         marginBottom: '5px',
-        fontWeight: 'bold',
+        fontWeight: '600',
+        fontSize: '14px',
+        color: '#333',
     },
     input: {
-        padding: '10px',
-        marginBottom: '15px',
-        border: '1px solid #ddd',
-        borderRadius: '4px',
+        padding: '12px',
+        marginBottom: '5px', 
+        border: '1px solid #ccc',
+        borderRadius: '6px',
         fontSize: '16px',
+        transition: 'border-color 0.3s',
     },
     button: {
-        padding: '10px',
-        backgroundColor: '#f44336', // Admin color
+        padding: '12px',
         color: 'white',
         border: 'none',
-        borderRadius: '4px',
+        borderRadius: '6px',
         cursor: 'pointer',
         fontSize: '16px',
-        marginTop: '10px',
+        fontWeight: 'bold',
+        marginTop: '20px', 
+        transition: 'background-color 0.3s',
     },
     errorContainer: {
         marginTop: '15px',
         padding: '10px',
-        backgroundColor: '#fdd',
-        border: '1px solid #f00',
-        borderRadius: '4px',
+        backgroundColor: '#ffe6e6',
+        border: '1px solid #ff9999',
+        borderRadius: '6px',
     },
     errorMessage: {
-        margin: '0',
-        color: 'red',
+        margin: '5px 0',
+        color: '#cc0000',
         fontSize: '14px',
+    },
+    errorMessageField: {
+        color: '#cc0000',
+        fontSize: '12px',
+        marginBottom: '15px',
+        marginTop: '2px',
     },
     footer: {
         textAlign: 'center',
-        marginTop: '20px',
+        marginTop: '25px',
         fontSize: '14px',
     }
-};
+}

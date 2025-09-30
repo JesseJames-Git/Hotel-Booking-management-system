@@ -1,49 +1,64 @@
 import React, { useState } from 'react';
-import { Link, useHistory } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom'; 
 import { Formik, Form, Field, ErrorMessage } from 'formik';
-import * as yup from 'yup'; 
+import * as yup from 'yup';
 
 // --- Yup Validation Schema ---
-const LoginSchema = yup.object().shape({
-  email: yup.string().email('Must be a valid email.').required('Email Address is required.'),
-  password: yup.string().required('Password is required.'),
+const AdminSignupSchema = yup.object().shape({
+  name: yup.string().required('Admin Name is required.'),
+  hotel_id: yup.number().typeError('Hotel ID must be a number.').required('Hotel ID is required.'),
+  password: yup.string().min(8, 'Password must be at least 8 characters.').required('Password is required.'),
+  passwordConfirmation: yup.string()
+    .oneOf([yup.ref('password'), null], 'Passwords must match.') 
+    .required('Password confirmation is required.'),
 });
 
-
-const GuestLogin = ({ onGuestLogin }) => {
+const HotelAdminSignUp = ({ onAdminLogin }) => {
   const [submissionError, setSubmissionError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const history = useHistory(); 
 
   const initialValues = {
-    email: '',
+    name: '',
     password: '',
+    passwordConfirmation: '',
   };
 
   const handleSubmit = (values) => {
     setIsLoading(true);
     setSubmissionError(null);
 
-    fetch("/guests/login", {
+    const payload = {
+      name: values.name,
+      hotel_id: Number(values.hotel_id),
+      password: values.password,
+    };
+
+    fetch("/admin", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
+      body: JSON.stringify(payload),
     })
       .then((res) => {
         setIsLoading(false);
         if (res.ok) {
-          return res.json().then((guestUser) => {
-
-            if (onGuestLogin) {
-              onGuestLogin({ ...guestUser, role: 'guest' }); 
+          return res.json().then((adminUser) => {
+            if (onAdminLogin) {
+              onAdminLogin({ ...adminUser, role: 'admin' }); 
             }
-            history.push("/guest/home");
+            history.push("/admin/home"); 
           });
         } else {
           res.json().then((err) => {
-            setSubmissionError(err.message || 'Invalid email or password.');
+            if (Array.isArray(err.errors)) {
+                setSubmissionError(err.errors.join(', '));
+            } else if (err.message) {
+                setSubmissionError(err.message);
+            } else {
+                setSubmissionError('Registration failed due to server error.');
+            }
           }).catch(() => {
-            setSubmissionError('Server returned an unknown error.');
+              setSubmissionError('Server returned an unknown error.');
           });
         }
       })
@@ -55,32 +70,34 @@ const GuestLogin = ({ onGuestLogin }) => {
 
   return (
     <div style={styles.container}>
-      <h2 style={{...styles.header, color: '#008CBA'}}>Guest Login 🔑</h2>
+      <h2 style={{...styles.header, color: '#f44336'}}>Admin Registration 🏨</h2>
       
       <Formik
         initialValues={initialValues}
-        validationSchema={LoginSchema}
+        validationSchema={AdminSignupSchema}
         onSubmit={(values) => handleSubmit(values)}
       >
         {({ isSubmitting }) => (
           <Form style={styles.form}>
             
-            {/* Email Address Field */}
-            <label htmlFor="email" style={styles.label}>Email</label>
-            <Field type="email" id="email" name="email" style={styles.input} />
-            <ErrorMessage name="email" component="div" style={styles.errorMessageField} />
+            <label htmlFor="name" style={styles.label}>Admin Name(Username)</label>
+            <Field type="text" id="name" name="name" style={styles.input} />
+            <ErrorMessage name="name" component="div" style={styles.errorMessageField} />
 
-            {/* Password Field */}
-            <label htmlFor="password" style={styles.label}>Password</label>
+            <label htmlFor="password" style={styles.label}>Password (min 8 chars)</label>
             <Field type="password" id="password" name="password" style={styles.input} />
             <ErrorMessage name="password" component="div" style={styles.errorMessageField} />
+
+            <label htmlFor="passwordConfirmation" style={styles.label}>Confirm Password</label>
+            <Field type="password" id="passwordConfirmation" name="passwordConfirmation" style={styles.input} />
+            <ErrorMessage name="passwordConfirmation" component="div" style={styles.errorMessageField} />
 
             <button 
               type="submit" 
               disabled={isSubmitting || isLoading} 
-              style={{...styles.button, backgroundColor: '#008CBA'}}
+              style={{...styles.button, backgroundColor: '#f44336'}}
             >
-              {isLoading || isSubmitting ? 'Logging in...' : 'Log In'}
+              {isLoading || isSubmitting ? 'Creating Account...' : 'Register Admin'}
             </button>
 
             {submissionError && (
@@ -93,7 +110,7 @@ const GuestLogin = ({ onGuestLogin }) => {
       </Formik>
       
       <p style={styles.footer}>
-        New user? <Link to="/guest/signup" style={{color: '#008CBA', fontWeight: 'bold'}}>Register here</Link>
+        Already registered? <Link to="/admin/login" style={{color: '#f44336', fontWeight: 'bold'}}>Sign in here</Link>
       </p>
       <p style={styles.footer}>
         <Link to="/" style={{color: '#666'}}>Back to Home</Link>
@@ -102,7 +119,7 @@ const GuestLogin = ({ onGuestLogin }) => {
   );
 };
 
-export default GuestLogin;
+export default HotelAdminSignUp;
 
 const styles = {
     container: {

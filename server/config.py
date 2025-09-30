@@ -1,3 +1,4 @@
+import os
 # Standard library imports
 
 # Remote library imports
@@ -18,6 +19,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.json.compact = False
 bcrypt = Bcrypt(app)
+app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", "dev-secret-key")
 
 # Define metadata, instantiate db
 metadata = MetaData(naming_convention={

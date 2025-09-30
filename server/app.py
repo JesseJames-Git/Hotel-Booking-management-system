@@ -27,18 +27,24 @@ class GuestLogin(Resource):
 
         if guest and guest.authenticate(data.get('password')):
             session['guest_id'] = guest.id
-            return make_response({'message': 'Login sucessful', 'guest':guest.to_dict()}, 200)
+            return make_response({'message': 'Login successful', 'guest':guest.to_dict()}, 200)
         else:
             return make_response({'Error 401': 'Invalid Email or Password'}, 401)
 
 class CheckGuestSession(Resource):
     def get(self):
-        valid_guest = Guests.query.filter(Guests.id == 2).first()
+        guest_id = session.get('guest_id')
+
+        if not guest_id:
+            return make_response({'message': '401: Not authorized'}, 401)
+
+        valid_guest = Guests.query.filter(Guests.id == guest_id).first()
 
         if valid_guest:
             return make_response(valid_guest.to_dict(), 200)
         else:
-            return make_response({'message':'401: Not authorized'}, 401)
+            return make_response({'message': '401: Not authorized'}, 401)
+
         
 class GuestLogout(Resource):
     def delete(self):

@@ -7,6 +7,8 @@ import BookingForm from "./BookingForm";
 import StartingPage from "./StartingPage";
 import GuestLogin from "./GuestLogin";
 import HotelAdminLogin from "./HotelAdminLogin";
+import GuestSignUp from "./GuestSignup";
+import AdminSignup from "./AdminSignup";
 
 function App() {
   const [guest, setGuest] = useState({});
@@ -41,7 +43,11 @@ function App() {
 
           <Route path="/home" component={StartingPage}/>
 
-          {/* ----------------signup pages--------------- */}
+          {/* ---------------signup pages-------------- */}
+          <Route path="/guest/signup" component={GuestSignUp}/>
+          <Route path="/admin/signup" component={AdminSignup}/>
+
+          {/* ----------------login pages--------------- */}
           <Route path="/guest/login" component={GuestLogin}/>
           <Route path="/admin/login" component={HotelAdminLogin}/>
 
