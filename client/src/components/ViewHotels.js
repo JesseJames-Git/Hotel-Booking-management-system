@@ -28,8 +28,9 @@ const ViewHotels = () => {
             <Link to={`/hotels/${h.id}`}>
               <button>View Full Details</button>
             </Link>
-            
-            <Link>
+
+            <Link to={'/booking'}>
+            <button>Book Now</button>
             </Link>
           </li>
         ))}

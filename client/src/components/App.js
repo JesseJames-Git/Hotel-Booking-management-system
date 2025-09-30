@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Route, Switch, Redirect } from "react-router-d
 import GuestHomePage from "./GuestHomePage";
 import ViewHotels from "./ViewHotels";
 import HotelDetails from "./HotelDetails";
+import BookingForm from "./BookingForm";
 
 function App() {
   const [guest, setGuest] = useState({});
@@ -49,10 +50,13 @@ function App() {
           {/* Single hotel details */}
           <Route path="/hotels/:id" component={HotelDetails} />
 
+          <Route path="/booking" component={BookingForm} />
+
           {/* Fallback for unknown routes */}
           <Route>
             <h2>404 - Page Not Found</h2>
           </Route>
+
         </Switch>
       </div>
     </Router>

@@ -153,6 +153,60 @@ class GuestBookings(Resource):
                 for b in bookings]
         return make_response(jsonify(data), 200)
     
+
+    def post(self):
+        data = request.get_json()
+        try:
+            guest_id = data.get("guest_id")
+            hotel_id = data.get("hotel_id")
+            check_in_date = data.get("check_in_date")
+            check_out_date = data.get("check_out_date")
+            guests = data.get("guests")
+            booked_rooms = data.get("booked_rooms", [])
+
+            if not (guest_id and hotel_id and check_in_date and check_out_date and guests):
+                return {"error": "Missing required fields"}, 400
+
+            new_booking = Bookings(
+                guest_id=guest_id,
+                hotel_id=hotel_id,
+                check_in_date=check_in_date,
+                check_out_date=check_out_date,
+                guests=guests
+            )
+            db.session.add(new_booking)
+            db.session.commit()
+
+            created_booked_rooms = []
+            for br in booked_rooms:
+                if br.get("quantity", 0) > 0:
+                    booked_room = BookedRoom(
+                        booking_id=new_booking.id,
+                        room_id=br["room_id"],
+                        quantity=br["quantity"]
+                    )
+                    db.session.add(booked_room)
+                    created_booked_rooms.append(booked_room)
+
+            db.session.commit()
+
+            return {
+                "id": new_booking.id,
+                "guest_id": new_booking.guest_id,
+                "hotel_id": new_booking.hotel_id,
+                "check_in_date": str(new_booking.check_in_date),
+                "check_out_date": str(new_booking.check_out_date),
+                "guests": new_booking.guests,
+                "booked_rooms": [
+                    {"id": br.id, "room_id": br.room_id, "quantity": br.quantity}
+                    for br in created_booked_rooms
+                ]
+            }, 201
+
+        except Exception as e:
+            db.session.rollback()
+            return {"error": str(e)}, 500
+
 class BookingById(Resource):
     def patch(self, booking_id):
         guest_id = session.get("guest_id") or 2
