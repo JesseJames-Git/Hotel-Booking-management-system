@@ -73,10 +73,10 @@ const StartingPage = () => {
       <div className="login-options" style={{ maxWidth: '600px', margin: '0 auto', display: 'flex', justifyContent: 'space-around' }}>
         
         {/* Guest Login Option */}
-        <div style={{ padding: '20px', border: '1px solid #ccc', borderRadius: '8px', width: '45%' }}>
+        <div style={{ padding: '20px', border: '1px solid #ccc', borderRadius: '8px', width: '60%', marginLeft: '-30px' }}>
           <h2>Guest Access 👥</h2>
           <p>Sign in to view and manage your reservations.</p>
-          <Link to="/guest/signin">
+          <Link to="/guest/login">
             <button style={{ 
               padding: '10px 20px', 
               fontSize: '16px', 
@@ -84,10 +84,10 @@ const StartingPage = () => {
               backgroundColor: '#4CAF50', 
               color: 'white', 
               border: 'none', 
-              borderRadius: '4px',
+              borderRadius: '6px',
               margin: '5px'
             }}>
-              Guest Sign In
+              Guest Login
             </button>
           </Link>
           <Link to="/guest/signup">
@@ -98,30 +98,44 @@ const StartingPage = () => {
               backgroundColor: '#008CBA', 
               color: 'white', 
               border: 'none', 
-              borderRadius: '4px',
+              borderRadius: '6px',
               margin: '5px'
             }}>
-              Guest Register
+              Guest Sign-up
             </button>
           </Link>
         </div>
         
         {/* Admin Login Option */}
-        <div style={{ padding: '20px', border: '1px solid #ccc', borderRadius: '8px', width: '45%' }}>
+        <div style={{ padding: '20px', border: '1px solid #ccc', borderRadius: '8px', width: '60%', marginLeft: '80px' }}>
           <h2>Admin Access 🔑</h2>
           <p>Hotel staff login to manage rooms and operations.</p>
-          <Link to="/admin/signin">
+          <Link to="/admin/login">
             <button style={{ 
               padding: '10px 20px', 
               fontSize: '16px', 
               cursor: 'pointer', 
-              backgroundColor: '#f44336', 
+              backgroundColor: '#f44336fd', 
               color: 'white', 
               border: 'none', 
-              borderRadius: '4px',
+              borderRadius: '6px',
               margin: '5px'
             }}>
-              Admin Sign In
+              Admin Login
+            </button>
+          </Link>
+          <Link to="/admin/signup">
+            <button style={{ 
+              padding: '10px 20px', 
+              fontSize: '16px', 
+              cursor: 'pointer', 
+              backgroundColor: '#a56102ff', 
+              color: 'white', 
+              border: 'none', 
+              borderRadius: '6px',
+              margin: '5px'
+            }}>
+              Admin Sign-up
             </button>
           </Link>
         </div>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useHistory } from 'react-router-dom';
 
-const GuestSignIn = ({ onGuestLogin }) => {
+const GuestLogin = ({ onGuestLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState([]);
@@ -86,7 +86,7 @@ const GuestSignIn = ({ onGuestLogin }) => {
   );
 };
 
-export default GuestSignIn;
+export default GuestLogin;
 
 // Basic inline styles
 const styles = {

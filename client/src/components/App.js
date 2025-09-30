@@ -5,8 +5,8 @@ import ViewHotels from "./ViewHotels";
 import HotelDetails from "./HotelDetails";
 import BookingForm from "./BookingForm";
 import StartingPage from "./StartingPage";
-import GuestSignIn from "./GuestSignIn";
-import HotelAdminSignIn from "./HotelAdminSignIn";
+import GuestLogin from "./GuestLogin";
+import HotelAdminLogin from "./HotelAdminLogin";
 
 function App() {
   const [guest, setGuest] = useState({});
@@ -42,12 +42,12 @@ function App() {
           <Route path="/home" component={StartingPage}/>
 
           {/* ----------------signup pages--------------- */}
-          <Route path="/guest/signup" component={GuestSignIn}/>
-          <Route path="/admin/signup" component={HotelAdminSignIn}/>
+          <Route path="/guest/login" component={GuestLogin}/>
+          <Route path="/admin/login" component={HotelAdminLogin}/>
 
 
           {/* Home page (guest info + bookings) */}
-          <Route path="/home/guest">
+          <Route path="/guest/home">
             <GuestHomePage
               guest={guest}
               setBookings={setBookings}
@@ -61,14 +61,12 @@ function App() {
           {/* Single hotel details */}
           <Route path="/hotels/:id" component={HotelDetails} />
 
-          <Route path="/booking" component={BookingForm} />
+          <Route path="/book" component={BookingForm} />
 
           <Route
             path="/hotels/:hotelId/book"
             element={<BookingForm guestId={guest.id} />}
           />
-
-        
 
           {/* Fallback for unknown routes */}
           <Route>

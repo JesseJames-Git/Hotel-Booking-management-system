@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useHistory } from 'react-router-dom';
 
-const HotelAdminSignIn = ({ onAdminLogin }) => {
+const HotelAdminLogin = ({ onAdminLogin }) => {
   const [name, setName] = useState(''); // Assuming Admin login uses 'name' as identifier
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState([]);
@@ -88,7 +88,7 @@ const HotelAdminSignIn = ({ onAdminLogin }) => {
   );
 };
 
-export default HotelAdminSignIn;
+export default HotelAdminLogin;
 
 // Basic inline styles (reused from Guest component, adjusted colors)
 const styles = {
