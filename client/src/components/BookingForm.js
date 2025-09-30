@@ -15,6 +15,7 @@ const BookingSchema = Yup.object().shape({
     Yup.object().shape({
       room_id: Yup.number().required(),
       quantity: Yup.number().min(0),
+      selected: Yup.boolean(),
     })
   ),
 })
@@ -27,7 +28,11 @@ const BookingForm = ({ guestId, onBookingSuccess }) => {
     if (hotelId) {
       fetch(`/hotels/${hotelId}/rooms`)
         .then((r) => r.json())
-        .then((data) => setRooms(data))
+        .then((data) => {
+          console.log("Fetched rooms:", data) // 👈 debug
+          setRooms(data)
+        })
+        .catch((err) => console.error("Failed to load rooms:", err))
     }
   }, [hotelId])
 
@@ -43,12 +48,22 @@ const BookingForm = ({ guestId, onBookingSuccess }) => {
           booked_rooms: rooms.map((room) => ({
             room_id: room.id,
             quantity: 0,
+            selected: false,
           })),
         }}
         enableReinitialize
         validationSchema={BookingSchema}
         onSubmit={(values, { setSubmitting, setStatus, resetForm }) => {
           setStatus(null)
+
+          // Only include selected rooms
+          const selectedRooms = values.booked_rooms.filter((br) => br.selected)
+
+          if (selectedRooms.length === 0) {
+            setStatus("Please select at least one room.")
+            setSubmitting(false)
+            return
+          }
 
           fetch("/my_bookings", {
             method: "POST",
@@ -59,36 +74,17 @@ const BookingForm = ({ guestId, onBookingSuccess }) => {
               check_in_date: values.check_in_date,
               check_out_date: values.check_out_date,
               guests: values.guests,
+              booked_rooms: selectedRooms,
             }),
           })
             .then((r) => {
               if (!r.ok) throw new Error("Failed to create booking")
               return r.json()
             })
-            .then(async (newBooking) => {
-              const bookedRoomsPromises = values.booked_rooms
-                .filter((br) => br.quantity > 0)
-                .map((br) =>
-                  fetch("/booked_rooms", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      booking_id: newBooking.id,
-                      room_id: br.room_id,
-                      quantity: br.quantity,
-                    }),
-                  }).then((r) => {
-                    if (!r.ok) throw new Error("Failed to create booked room")
-                    return r.json()
-                  })
-                )
-
-              const bookedRooms = await Promise.all(bookedRoomsPromises)
-
+            .then((newBooking) => {
               if (onBookingSuccess) {
-                onBookingSuccess({ ...newBooking, booked_rooms: bookedRooms })
+                onBookingSuccess(newBooking)
               }
-
               resetForm()
             })
             .catch((err) => {
@@ -99,8 +95,9 @@ const BookingForm = ({ guestId, onBookingSuccess }) => {
             })
         }}
       >
-        {({ isSubmitting, status }) => (
+        {({ values, setFieldValue, isSubmitting, status }) => (
           <Form>
+            {/* Dates & Guests */}
             <div>
               <label>Check-in Date:</label>
               <Field type="date" name="check_in_date" />
@@ -131,25 +128,64 @@ const BookingForm = ({ guestId, onBookingSuccess }) => {
               />
             </div>
 
+            {/* Rooms */}
             <h3>Select Rooms</h3>
-            {rooms.map((room, index) => (
-              <div key={room.id} style={{ marginBottom: "10px" }}>
-                <p>
-                  {room.name} – ${room.price_per_night} / night
-                </p>
-                <label>Quantity:</label>
-                <Field
-                  type="number"
-                  name={`booked_rooms[${index}].quantity`}
-                  min="0"
-                />
-                <Field
-                  type="hidden"
-                  name={`booked_rooms[${index}].room_id`}
-                  value={room.id}
-                />
-              </div>
-            ))}
+            {rooms.length === 0 ? (
+              <p>No rooms available for this hotel.</p>
+            ) : (
+              rooms.map((room, index) => {
+                const isSelected = values.booked_rooms[index]?.selected
+                return (
+                  <div
+                    key={room.id}
+                    style={{
+                      border: "1px solid #ccc",
+                      borderRadius: "10px",
+                      padding: "15px",
+                      marginBottom: "15px",
+                      background: isSelected ? "#d1f7c4" : "#f9f9f9",
+                    }}
+                  >
+                    <h4>{room.name || room.room_name}</h4>
+                    <p>${room.price_per_night} / night</p>
+
+                    <label>Quantity: </label>
+                    <Field
+                      type="number"
+                      name={`booked_rooms[${index}].quantity`}
+                      min="0"
+                      disabled={!isSelected}
+                    />
+                    <Field
+                      type="hidden"
+                      name={`booked_rooms[${index}].room_id`}
+                      value={room.id}
+                    />
+
+                    <button
+                      type="button"
+                      style={{
+                        marginTop: "10px",
+                        padding: "5px 10px",
+                        borderRadius: "8px",
+                        background: isSelected ? "green" : "blue",
+                        color: "white",
+                        border: "none",
+                        cursor: "pointer",
+                      }}
+                      onClick={() =>
+                        setFieldValue(
+                          `booked_rooms[${index}].selected`,
+                          !isSelected
+                        )
+                      }
+                    >
+                      {isSelected ? "Selected" : "Select"}
+                    </button>
+                  </div>
+                )
+              })
+            )}
 
             <button type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Booking..." : "Confirm Booking"}

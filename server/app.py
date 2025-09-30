@@ -102,9 +102,13 @@ class RoomsList(Resource):
         db.session.add(room)
         db.session.commit()
         return room.to_dict(), 201
+    
+class RoomsPerHotel(Resource):
+    def get(self, hotel_id):
+        return make_response(jsonify([r.to_dict(only=("id", "room_name", "room_type.type_name", "price_per_night")) for r in Rooms.query.filter(hotel_id==hotel_id).all()]), 200)
 
 class SingleRoom(Resource):
-    def patch(self, id):
+    def patch(self, id):    
         room = Rooms.query.get_or_404(id)
         data = request.get_json()
         for key, value in data.items():
@@ -332,6 +336,7 @@ api.add_resource(GuestLogout, "/guests/logout")
 # Rooms
 api.add_resource(RoomsList, "/rooms")
 api.add_resource(SingleRoom, "/rooms/<int:id>")
+api.add_resource(RoomsPerHotel, "/hotels/<int:hotel_id>/rooms")
 
 # Bookings
 api.add_resource(BookingListResource, "/bookings")
