@@ -53,8 +53,6 @@ class GuestLogout(Resource):
     
 
 
-    
-    
 # Guests Resources
 class GuestsList(Resource):
     def get(self):
@@ -132,7 +130,18 @@ class SingleRoom(Resource):
         db.session.commit()
         return make_response({"message": f"Room {id} deleted"}, 200)
     
-    
+class AvailableRoomsPerHotel(Resource):
+    def get(self, hotel_id):
+        try:
+            available_rooms = [r.to_dict(
+                only=("id", "room_name", "room_type.type_name", "price_per_night", "hotel.name", "is_available")) 
+                               for r in Rooms.query.filter(
+                                   Rooms.currently_available == True, Rooms.is_available == True, Rooms.hotel_id == hotel_id).all()]
+
+            return make_response(jsonify(available_rooms), 200)
+
+        except Exception as e:
+            return make_response(jsonify({"message": f"An error occurred fetching rooms: {str(e)}"}), 500)
 
 # Booking Resources
 class BookingListResource(Resource):
@@ -156,7 +165,7 @@ class BookingListResource(Resource):
 class GuestBookings(Resource):
     def get(self):
 
-        guest_id = session.get("guest_id") or 2 
+        guest_id = session.get("guest_id")
         if not guest_id:
             return {"error": "Unauthorized"}, 401
 
@@ -166,59 +175,32 @@ class GuestBookings(Resource):
                 for b in bookings]
         return make_response(jsonify(data), 200)
     
-
     def post(self):
+        guest_id = session.get("guest_id")
+        if not guest_id:
+            return {"error": "Unauthorized"}, 401
+
         data = request.get_json()
-        try:
-            guest_id = data.get("guest_id")
-            hotel_id = data.get("hotel_id")
-            check_in_date = data.get("check_in_date")
-            check_out_date = data.get("check_out_date")
-            guests = data.get("guests")
-            booked_rooms = data.get("booked_rooms", [])
+        room_id = data.get("room_id")
+        check_in = datetime.fromisoformat(data.get("check_in"))
+        check_out = datetime.fromisoformat(data.get("check_out"))
 
-            if not (guest_id and hotel_id and check_in_date and check_out_date and guests):
-                return {"error": "Missing required fields"}, 400
+        if not is_room_available(room_id, check_in, check_out):
+            return {"error": "Room is not available for the selected dates"}, 400
 
-            new_booking = Bookings(
-                guest_id=guest_id,
-                hotel_id=hotel_id,
-                check_in_date=check_in_date,
-                check_out_date=check_out_date,
-                guests=guests
-            )
-            db.session.add(new_booking)
-            db.session.commit()
+        new_booking = Bookings(
+            guest_id=guest_id,
+            room_id=room_id,
+            check_in_date=check_in,
+            check_out_date=check_out,
+            status=data.get("status", "pending"),
+        )
+        db.session.add(new_booking)
+        db.session.commit()
 
-            created_booked_rooms = []
-            for br in booked_rooms:
-                if br.get("quantity", 0) > 0:
-                    booked_room = BookedRoom(
-                        booking_id=new_booking.id,
-                        room_id=br["room_id"],
-                        quantity=br["quantity"]
-                    )
-                    db.session.add(booked_room)
-                    created_booked_rooms.append(booked_room)
-
-            db.session.commit()
-
-            return {
-                "id": new_booking.id,
-                "guest_id": new_booking.guest_id,
-                "hotel_id": new_booking.hotel_id,
-                "check_in_date": str(new_booking.check_in_date),
-                "check_out_date": str(new_booking.check_out_date),
-                "guests": new_booking.guests,
-                "booked_rooms": [
-                    {"id": br.id, "room_id": br.room_id, "quantity": br.quantity}
-                    for br in created_booked_rooms
-                ]
-            }, 201
-
-        except Exception as e:
-            db.session.rollback()
-            return {"error": str(e)}, 500
+        return make_response(new_booking.to_dict(only=(
+            'id','rooms.hotel.name', 'rooms.room_name','rooms.room_type.type_name','check_in_date','check_out_date','status',)
+        ), 201)
 
 class BookingById(Resource):
     def patch(self, booking_id):
@@ -265,7 +247,6 @@ class BookingById(Resource):
             for b in bookings
         ]
         return make_response(jsonify(data), 200)
-
 
 
 # Hotel Resources
@@ -401,6 +382,7 @@ api.add_resource(GuestLogout, "/guests/logout")
 # Rooms
 api.add_resource(RoomsList, "/rooms")
 api.add_resource(SingleRoom, "/rooms/<int:id>")
+api.add_resource(AvailableRoomsPerHotel, "/rooms/<int:hotel_id>/available")
 api.add_resource(RoomsPerHotel, "/hotels/<int:hotel_id>/rooms")
 
 # Bookings

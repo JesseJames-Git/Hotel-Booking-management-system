@@ -23,7 +23,6 @@ const HotelAdminSignUp = ({ onAdminLogin }) => {
     passwordConfirmation: '',
   }
 
-
   const handleSubmit = (values, { setSubmitting }) => {  
     setIsLoading(true)
     setSubmissionError(null)

@@ -1,5 +1,4 @@
 import React, { useState } from "react"
-import GuestHeader from "./GuestHeader"
 
 const GuestHomePage = ({ guest, my_bookings, setBookings }) => {
   const [editingBookingId, setEditingBookingId] = useState(null)
@@ -78,8 +77,6 @@ const GuestHomePage = ({ guest, my_bookings, setBookings }) => {
 
   return (
     <div>
-      <GuestHeader guest={guest} />
-
       <h3>Home Page:</h3>
       <p>Name: {guest.name}</p>
       <p>Email: {guest.email}</p>

@@ -12,8 +12,6 @@ const ViewHotels = () => {
 
   return (
     <div>
-      <Link to='/guest/home' style={{color: '#19bab2ff', fontWeight: 'bold'}}>Go Back Home</Link>
-      
       <h1>Hotels!!!</h1>
       <p>Here is a list of all Hotels!!!</p>
 
@@ -31,7 +29,7 @@ const ViewHotels = () => {
               <button>View Full Details</button>
             </Link>
 
-            <Link to={'/booking'}>
+            <Link to={'/book'}>
             <button>Book Now</button>
             </Link>
           </li>

@@ -54,83 +54,13 @@ const StartingPage = () => {
   }
 
   return (
-    <div className="Startingpage-container" style={{ textAlign: 'center', padding: '50px' }}>
-      <h1>Welcome to the Hotel Booking Portal 🏨</h1>
-      <p style={{ marginBottom: '40px' }}>Please select your access type to continue.</p>
+    <div >
+      <h2>About Us</h2>
+      <p>Want a place for vacation, workshop or any other recreation but not know where?. </p>
+      <p>Want to make a booking in processes that takes minutes?</p>
+      <p>You have your hotel and want smoother booking processes?</p>
 
-      <div className="login-options" style={{ maxWidth: '600px', margin: '0 auto', display: 'flex', justifyContent: 'space-around' }}>
-        
-        {/* Guest Login Option */}
-        <div style={{ padding: '20px', border: '1px solid #ccc', borderRadius: '8px', width: '60%', marginLeft: '-30px' }}>
-          <h2>Guest Access 👥</h2>
-          <p>Sign in to view and manage your reservations.</p>
-          <Link to="/guest/login">
-            <button style={{ 
-              padding: '10px 20px', 
-              fontSize: '16px', 
-              cursor: 'pointer', 
-              backgroundColor: '#008CBA', 
-              color: 'white', 
-              border: 'none', 
-              borderRadius: '6px',
-              margin: '5px'
-            }}>
-              Guest Login
-            </button>
-          </Link>
-          <Link to="/guest/signup">
-            <button style={{ 
-              padding: '10px 20px', 
-              fontSize: '16px', 
-              cursor: 'pointer', 
-              backgroundColor: '#4CAF50', 
-              color: 'white', 
-              border: 'none', 
-              borderRadius: '6px',
-              margin: '5px'
-            }}>
-              Guest Sign-up
-            </button>
-          </Link>
-        </div>
-        
-        {/* Admin Login Option */}
-        <div style={{ padding: '20px', border: '1px solid #ccc', borderRadius: '8px', width: '60%', marginLeft: '80px' }}>
-          <h2>Admin Access 🔑</h2>
-          <p>Hotel staff login to manage rooms and operations.</p>
-          <Link to="/admin/login">
-            <button style={{ 
-              padding: '10px 20px', 
-              fontSize: '16px', 
-              cursor: 'pointer', 
-              backgroundColor: '#f44336fd', 
-              color: 'white', 
-              border: 'none', 
-              borderRadius: '6px',
-              margin: '5px'
-            }}>
-              Admin Login
-            </button>
-          </Link>
-          <Link to="/admin/signup">
-            <button style={{ 
-              padding: '10px 20px', 
-              fontSize: '16px', 
-              cursor: 'pointer', 
-              backgroundColor: '#a56102ff', 
-              color: 'white', 
-              border: 'none', 
-              borderRadius: '6px',
-              margin: '5px'
-            }}>
-              Admin Sign-up
-            </button>
-          </Link>
-        </div>
-      </div>
-
-      <p style={{ marginTop: '40px', fontSize: '12px', color: '#666' }}>
-      </p>
+      <p>Look no further because this web app covers all these and does much more!!! Just sign up to get started.</p>
     </div>
   );
 };
