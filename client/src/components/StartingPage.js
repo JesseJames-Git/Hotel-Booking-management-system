@@ -1,10 +1,11 @@
-import React from 'react';
+import React  from 'react';
 import { Link, useHistory } from 'react-router-dom';
 import GuestHomePage from './GuestHomePage';
+import { useState, useEffect } from 'react';
 
 const useAuth = () => {
-  const [currentUser, setCurrentUser] = React.useState(null);
-  const [currentBookings, setCurrentBookings] = React.useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [currentBookings, setCurrentBookings] = useState([]);
 
   const login = (userData) => {
     setCurrentUser(userData);
@@ -31,7 +32,7 @@ const StartingPage = () => {
   const { user, isGuest, isAdmin, my_bookings, setBookings, logout } = useAuth();
   const history = useHistory();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isAdmin) {
       history.replace('/admin/home'); 
     }

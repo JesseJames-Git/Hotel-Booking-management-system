@@ -112,7 +112,7 @@ if __name__ == '__main__':
                 price_per_night=fake.pyfloat(left_digits=6, right_digits=2, min_value=5000, max_value=80000),
                 is_available=fake.pybool()
             )
-            for _ in range(30)
+            for _ in range(200)
         ]
         print("Seeded rooms data")
 

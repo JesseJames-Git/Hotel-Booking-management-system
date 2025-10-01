@@ -20,6 +20,9 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.json.compact = False
 bcrypt = Bcrypt(app)
 app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", "dev-secret-key")
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "None"   
+app.config["SESSION_COOKIE_SECURE"] = False  
 
 # Define metadata, instantiate db
 metadata = MetaData(naming_convention={
@@ -33,4 +36,4 @@ db.init_app(app)
 api = Api(app)
 
 # Instantiate CORS
-CORS(app)
+CORS(app, supports_credentials=True, origins=["http://localhost:3000"])

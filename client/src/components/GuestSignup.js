@@ -1,40 +1,40 @@
-import React, { useState } from 'react';
-import { Link, useHistory } from 'react-router-dom';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import * as yup from 'yup'; 
+import React, { useState } from 'react'
+import { Link, useHistory } from 'react-router-dom' 
+import { Formik, Form, Field, ErrorMessage } from 'formik'
+import * as yup from 'yup'
 
 // --- Yup Validation Schema ---
-const SignupSchema = yup.object().shape({
-  name: yup.string().required('Name is required.').required('Email Address is required.'),
-  email: yup.string().email('Must be a valid email.').required('Email Address is required.'),
+const GuestSignupSchema = yup.object().shape({
+  name: yup.string().required('Full name is required.'),
+  email: yup.string().email('Invalid email.').required('Email is required.'),
   password: yup.string().min(8, 'Password must be at least 8 characters.').required('Password is required.'),
   passwordConfirmation: yup.string()
     .oneOf([yup.ref('password'), null], 'Passwords must match.') 
     .required('Password confirmation is required.'),
-});
-
+})
 
 const GuestSignUp = ({ onGuestLogin }) => {
-  const [submissionError, setSubmissionError] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const history = useHistory(); 
+  const [submissionError, setSubmissionError] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const history = useHistory() 
 
   const initialValues = {
     name: '',
     email: '',
     password: '',
     passwordConfirmation: '',
-  };
+  }
 
-  const handleSubmit = (values) => {
-    setIsLoading(true);
-    setSubmissionError(null);
+
+  const handleSubmit = (values, { setSubmitting }) => {  
+    setIsLoading(true)
+    setSubmissionError(null)
 
     const payload = {
       name: values.name,
       email: values.email,
       password: values.password,
-    };
+    }
 
     fetch("/guests", {
       method: "POST",
@@ -42,42 +42,47 @@ const GuestSignUp = ({ onGuestLogin }) => {
       body: JSON.stringify(payload),
     })
       .then((res) => {
-        setIsLoading(false);
+        setIsLoading(false)
         if (res.ok) {
           return res.json().then((guestUser) => {
             if (onGuestLogin) {
-              onGuestLogin({ ...guestUser, role: 'guest' }); 
+              onGuestLogin({ ...guestUser, role: 'guest' })
             }
-            history.push("/"); 
-          });
+            window.alert("🎉 Sign up successful! Welcome!")
+            setSubmitting(false)
+            history.push("/guest/home")
+          })
         } else {
           res.json().then((err) => {
             if (Array.isArray(err.errors)) {
-                setSubmissionError(err.errors.join(', '));
+              setSubmissionError(err.errors.join(', '))
             } else if (err.message) {
-                setSubmissionError(err.message);
+              setSubmissionError(err.message)
             } else {
-                setSubmissionError('Registration failed due to server error.');
+              setSubmissionError('Registration failed due to server error.')
             }
+            setSubmitting(false)
           }).catch(() => {
-              setSubmissionError('Server returned an unknown error.');
-          });
+            setSubmissionError('Server returned an unknown error.')
+            setSubmitting(false) 
+          })
         }
       })
       .catch(() => {
-        setIsLoading(false);
-        setSubmissionError('Network error or server unreachable.');
-      });
-  };
+        setIsLoading(false)
+        setSubmissionError('Network error or server unreachable.')
+        setSubmitting(false) 
+      })
+  }
 
   return (
     <div style={styles.container}>
-      <h2 style={{...styles.header, color: '#4CAF50'}}>Guest Registration 📝</h2>
+      <h2 style={{...styles.header, color: '#4CAF50'}}>Guest Registration </h2>
       
       <Formik
         initialValues={initialValues}
-        validationSchema={SignupSchema}
-        onSubmit={(values) => handleSubmit(values)}
+        validationSchema={GuestSignupSchema}
+        onSubmit={handleSubmit}  
       >
         {({ isSubmitting }) => (
           <Form style={styles.form}>
@@ -120,16 +125,16 @@ const GuestSignUp = ({ onGuestLogin }) => {
       </Formik>
       
       <p style={styles.footer}>
-        Already a user? <Link to="/guest/login" style={{color: '#4CAF50', fontWeight: 'bold'}}>Login here</Link>
+        Already registered? <Link to="/guest/login" style={{color: '#4CAF50', fontWeight: 'bold'}}>Sign in here</Link>
       </p>
       <p style={styles.footer}>
         <Link to="/" style={{color: '#666'}}>Back to Home</Link>
       </p>
     </div>
-  );
-};
+  )
+}
 
-export default GuestSignUp;
+export default GuestSignUp
 
 const styles = {
     container: {
@@ -197,4 +202,4 @@ const styles = {
         marginTop: '25px',
         fontSize: '14px',
     }
-};
+}

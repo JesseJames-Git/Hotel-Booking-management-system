@@ -1,76 +1,70 @@
-import React, { useState } from 'react';
-import { Link, useHistory } from 'react-router-dom';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import * as yup from 'yup'; 
+import React, { useState } from 'react'
+import { Link, useHistory } from 'react-router-dom'
+import { Formik, Form, Field, ErrorMessage } from 'formik'
+import * as yup from 'yup' 
 
 // --- Yup Validation Schema ---
 const LoginSchema = yup.object().shape({
   email: yup.string().email('Must be a valid email.').required('Email Address is required.'),
   password: yup.string().required('Password is required.'),
-});
-
+})
 
 const GuestLogin = ({ onGuestLogin }) => {
-  const [submissionError, setSubmissionError] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const history = useHistory(); 
+  const [submissionError, setSubmissionError] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const history = useHistory() 
 
-  const initialValues = {
-    email: '',
-    password: '',
-  };
+  const initialValues = { email: '', password: '' }
 
-  const handleSubmit = (values) => {
-    setIsLoading(true);
-    setSubmissionError(null);
+  const handleSubmit = (values, { setSubmitting }) => {
+    setIsLoading(true)
+    setSubmissionError(null)
 
     fetch("/guests/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",  
       body: JSON.stringify(values),
     })
       .then((res) => {
-        setIsLoading(false);
+        setIsLoading(false)
         if (res.ok) {
-          return res.json().then((guestUser) => {
-
+          return res.json().then((data) => {
+            const guestUser = data.guest || data
             if (onGuestLogin) {
-              onGuestLogin({ ...guestUser, role: 'guest' }); 
+              onGuestLogin({ ...guestUser, role: 'guest' })
             }
-            history.push("/guest/home");
-          });
+            setSubmitting(false)
+            history.push("/guest/home")
+          })
         } else {
           res.json().then((err) => {
-            setSubmissionError(err.message || 'Invalid email or password.');
+            setSubmissionError(err.message || 'Invalid email or password.')
+            setSubmitting(false)
           }).catch(() => {
-            setSubmissionError('Server returned an unknown error.');
-          });
+            setSubmissionError('Server returned an unknown error.')
+            setSubmitting(false)
+          })
         }
       })
       .catch(() => {
-        setIsLoading(false);
-        setSubmissionError('Network error or server unreachable.');
-      });
-  };
+        setIsLoading(false)
+        setSubmissionError('Network error or server unreachable.')
+        setSubmitting(false)
+      })
+  }
 
   return (
     <div style={styles.container}>
       <h2 style={{...styles.header, color: '#008CBA'}}>Guest Login 🔑</h2>
       
-      <Formik
-        initialValues={initialValues}
-        validationSchema={LoginSchema}
-        onSubmit={(values) => handleSubmit(values)}
-      >
+      <Formik initialValues={initialValues} validationSchema={LoginSchema} onSubmit={handleSubmit}>
         {({ isSubmitting }) => (
           <Form style={styles.form}>
-            
-            {/* Email Address Field */}
             <label htmlFor="email" style={styles.label}>Email</label>
             <Field type="email" id="email" name="email" style={styles.input} />
             <ErrorMessage name="email" component="div" style={styles.errorMessageField} />
 
-            {/* Password Field */}
             <label htmlFor="password" style={styles.label}>Password</label>
             <Field type="password" id="password" name="password" style={styles.input} />
             <ErrorMessage name="password" component="div" style={styles.errorMessageField} />
@@ -99,10 +93,11 @@ const GuestLogin = ({ onGuestLogin }) => {
         <Link to="/" style={{color: '#666'}}>Back to Home</Link>
       </p>
     </div>
-  );
-};
+  )
+}
 
-export default GuestLogin;
+export default GuestLogin
+
 
 const styles = {
     container: {
@@ -170,4 +165,4 @@ const styles = {
         marginTop: '25px',
         fontSize: '14px',
     }
-};
+}

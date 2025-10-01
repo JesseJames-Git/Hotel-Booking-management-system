@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 
 const GuestHeader = ({guest}) => {
   return (
@@ -6,7 +7,7 @@ const GuestHeader = ({guest}) => {
       <h2>Welcome {guest.name}</h2>
       <div>
         <button>Home</button>
-        <button>View Hotels</button>
+        <Link to="/hotels"><button>View Hotels</button></Link>
       </div>
     </div>
   )

@@ -1,6 +1,6 @@
 from flask import request, jsonify, make_response
 from config import app, db, api, Resource, session
-from models import Hotels, Guests, Rooms, Bookings, BookedRoom
+from models import Hotels, Guests, Rooms, Bookings, BookedRoom, Admins
 from datetime import datetime
 
 def is_room_available(room_id: int, check_in: datetime, check_out: datetime) -> bool:
@@ -50,6 +50,9 @@ class GuestLogout(Resource):
     def delete(self):
         session.pop('guest_id', None)
         return make_response({'message': '204: No Content'}, 204)
+    
+
+
     
     
 # Guests Resources
@@ -323,9 +326,65 @@ class SingleHotel(Resource):
         db.session.delete(hotel)
         db.session.commit()
         return {"message": f"Hotel {id} deleted"}, 200
+    
         
+# Admin Session Management
+class AdminLogin(Resource):
+    def post(self):
+        data = request.get_json()
+        admin = Admins.query.filter_by(name=data.get('name')).first()
 
+        if admin and admin.authenticate(data.get('password')):
+            session['admin_id'] = admin.id
+            return make_response({'message': 'Login successful', 'admin':admin.to_dict()}, 200)
+        else:
+            return make_response({'Error 401': 'Invalid Email or Password'}, 401)
+
+class CheckAdminSession(Resource):
+    def get(self):
+        admin_id = session.get('admin_id')
+
+        if not admin_id:
+            return make_response({'message': '401: Not authorized'}, 401)
+
+        valid_admin = Guests.query.filter(Guests.id == admin_id).first()
+
+        if valid_admin:
+            return make_response(valid_admin.to_dict(), 200)
+        else:
+            return make_response({'message': '401: Not authorized'}, 401)
+
+        
+class AdminLogout(Resource):
+    def delete(self):
+        session.pop('admin_id', None)
+        return make_response({'message': '204: No Content'}, 204)
+    
+    
+# Admin Resource
+class AdminsList(Resource):
+    def get(self):
+        return make_response(jsonify([a.to_dict() for a in Admins.query.all()]), 200)
+    
+    def post(self):
+        data = request.get_json()
+        new_admin = Admins(name = data.get("name"))
+        new_admin.password_hash = data.get("password")
+
+        db.session.add(new_admin)
+        db.session.commit()
+        
+        return new_admin.to_dict(), 201
+    
+        
 # -----------------------------------Routes--------------------------------------
+
+
+# Admins
+api.add_resource(AdminsList, "/admins")
+api.add_resource(AdminLogin, "/admin/login")
+api.add_resource(CheckAdminSession, "/admin")
+api.add_resource(AdminLogout, "/admin/logout")
 
 # Hotels
 api.add_resource(HotelsList, "/hotels")
