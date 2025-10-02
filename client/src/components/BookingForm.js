@@ -81,7 +81,7 @@ const BookingForm = ({ currentUser, onBookingSuccess }) => {
         if (res.ok) {
           return res.json().then((newBooking) => {
             if (onBookingSuccess) onBookingSuccess(newBooking);
-            history.push("/guest/dashboard");
+            history.push("/guest/home");
           });
         } else {
           res.json()

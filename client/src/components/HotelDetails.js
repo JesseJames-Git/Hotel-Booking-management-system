@@ -39,6 +39,9 @@ const HotelDetails = ({ match }) => {
       <Link to="/hotels">
         <button>⬅ Back to Hotels</button>
       </Link>
+      <Link to={`/hotels/${id}/book`}>
+        <button> Book Now </button>
+      </Link>
     </div>
   )
 }
