@@ -14,10 +14,10 @@ import AdminSignup from "./AdminSignup"
 function App() {
   const [user, setUser] = useState(null) 
   const [my_bookings, setBookings] = useState([])
-
+  const [hotels, setHotels] = useState([]);
 
   useEffect(() => {
-    fetch("/guests", { credentials: "include" })
+    fetch("/guest", { credentials: "include" })
       .then((res) => res.ok ? res.json() : null)
       .then((data) => data && setUser({ ...data, role: "guest" }))
       .catch(() => {})
@@ -35,18 +35,26 @@ function App() {
     if (user?.role === "guest") {
       fetch("/my_bookings", { credentials: "include" })
         .then((r) => r.json())
-        .then(setBookings)
+        .then((d) => setBookings(d))
         .catch(() => setBookings([]))
     }
   }, [user])
+
+    
+  useEffect(() => {
+    fetch("/hotels")
+      .then((r) => r.json())
+      .then((d) => setHotels(d));
+  }, []);
+  
 
   return (
     <Router>
       <div>
         <NavBar user={user} setUser={setUser} />
         <Switch>
+          {/* Root redirect */}
           <Route exact path="/">
-            {/* Redirect to proper home if logged in */}
             {user?.role === "guest" ? (
               <Redirect to="/guest/home" />
             ) : user?.role === "admin" ? (
@@ -56,9 +64,10 @@ function App() {
             )}
           </Route>
 
-          <Route path="/home" component={StartingPage} />
+          {/* Landing page */}
+          <Route exact path="/home" component={StartingPage} />
 
-          {/* Guest auth routes */}
+          {/* Guest auth */}
           <Route path="/guest/signup" component={GuestSignUp} />
           <Route path="/guest/login">
             {user?.role === "guest" ? (
@@ -68,7 +77,7 @@ function App() {
             )}
           </Route>
 
-          {/* Admin auth routes */}
+          {/* Admin auth */}
           <Route path="/admin/signup" component={AdminSignup} />
           <Route path="/admin/login">
             {user?.role === "admin" ? (
@@ -100,22 +109,26 @@ function App() {
             )}
           </Route>
 
-          {/* Hotels */}
-          <Route exact path="/hotels" component={ViewHotels} />
-          <Route path="/hotels/:id" component={HotelDetails} />
+          {/* Hotels list */}
+          <Route exact path="/hotels">
+            <ViewHotels hotels={hotels} />
+          </Route>
 
-          {/* Booking */}
-          <Route path="/book" component={BookingForm} />
+          {/* Hotel details */}
+          <Route exact path="/hotels/:id" component={HotelDetails} />
+
+          {/* Booking form */}
           <Route
-            path="/hotels/:hotelId/book"
-            render={(props) => <BookingForm {...props} guestId={user?.role === "guest" ? user.id : null} />}
+            path="/hotels/:id/book"
+            render={(props) => <BookingForm {...props} currentUser={user} />}
           />
 
-          {/* 404 */}
+          {/* 404 fallback */}
           <Route>
             <h2>404 - Page Not Found</h2>
           </Route>
         </Switch>
+
       </div>
     </Router>
   )

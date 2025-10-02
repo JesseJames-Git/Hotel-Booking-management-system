@@ -112,7 +112,7 @@ class RoomsList(Resource):
     
 class RoomsPerHotel(Resource):
     def get(self, hotel_id):
-        return make_response(jsonify([r.to_dict(only=("id", "room_name", "room_type.type_name", "price_per_night")) for r in Rooms.query.filter(hotel_id==hotel_id).all()]), 200)
+        return make_response(jsonify([r.to_dict(only=("id", "room_name", "room_type.type_name", "price_per_night")) for r in Rooms.query.filter(Rooms.hotel_id==hotel_id).all()]), 200)
 
 class SingleRoom(Resource):
     def patch(self, id):    
@@ -151,21 +151,31 @@ class BookingListResource(Resource):
 
     def post(self):
         data = request.get_json()
+        
         booking = Bookings(
-            guest_id=data.get("guest_id"),
-            room_id=data.get("room_id"),
-            check_in=datetime.fromisoformat(data.get("check_in")),
-            check_out=datetime.fromisoformat(data.get("check_out")),
-            status=data.get("status", "pending"),
+            guest_id=data["guest_id"],
+            check_in_date=datetime.fromisoformat(data["check_in"]),
+            check_out_date=datetime.fromisoformat(data["check_out"]),
+            status="pending"
         )
         db.session.add(booking)
+        db.session.commit() 
+
+        booked_room = BookedRoom(
+            booking_id=booking.id,
+            room_id=data["room_id"]
+        )
+        db.session.add(booked_room)
         db.session.commit()
-        return make_response(booking.to_dict(), 201)
+
+        return booking.to_dict(), 201
+
+
 
 class GuestBookings(Resource):
     def get(self):
 
-        guest_id = session.get("guest_id")
+        guest_id = session.get("guest_id") 
         if not guest_id:
             return {"error": "Unauthorized"}, 401
 
@@ -204,7 +214,7 @@ class GuestBookings(Resource):
 
 class BookingById(Resource):
     def patch(self, booking_id):
-        guest_id = session.get("guest_id") or 2
+        guest_id = session.get("guest_id")
 
         booking = Bookings.query.filter_by(id=booking_id, guest_id=guest_id).first()
         if not booking:
@@ -228,7 +238,7 @@ class BookingById(Resource):
         )), 200)
 
     def delete(self, booking_id):
-        guest_id = session.get("guest_id") or 2
+        guest_id = session.get("guest_id") 
 
         booking = Bookings.query.filter_by(id=booking_id, guest_id=guest_id).first()
         if not booking:
@@ -328,7 +338,7 @@ class CheckAdminSession(Resource):
         if not admin_id:
             return make_response({'message': '401: Not authorized'}, 401)
 
-        valid_admin = Guests.query.filter(Guests.id == admin_id).first()
+        valid_admin = Admins.query.filter(Admins.id == admin_id).first()
 
         if valid_admin:
             return make_response(valid_admin.to_dict(), 200)

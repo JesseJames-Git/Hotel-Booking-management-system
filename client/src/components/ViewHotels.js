@@ -1,14 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 
-const ViewHotels = () => {
-  const [hotels, setHotels] = useState([]);
 
-  useEffect(() => {
-    fetch("/hotels")
-      .then((r) => r.json())
-      .then((d) => setHotels(d));
-  }, []);
+const ViewHotels = ({ hotels }) => {
 
   return (
     <div>
@@ -29,8 +23,8 @@ const ViewHotels = () => {
               <button>View Full Details</button>
             </Link>
 
-            <Link to={'/book'}>
-            <button>Book Now</button>
+            <Link to={`/hotels/${h.id}/book`}>
+             <button>Book Now</button>
             </Link>
           </li>
         ))}

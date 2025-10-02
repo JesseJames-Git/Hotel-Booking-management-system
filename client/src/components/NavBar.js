@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 const NavBar = ({ user, setUser }) => {
   const handleLogout = () => {
-    fetch("/logout", { method: "DELETE", credentials: "include" })
+    fetch("/guests/logout", { method: "DELETE", credentials: "include" })
       .then(() => setUser(null))
       .catch(() => setUser(null));
   };

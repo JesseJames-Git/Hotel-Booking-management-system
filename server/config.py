@@ -21,8 +21,7 @@ app.json.compact = False
 bcrypt = Bcrypt(app)
 app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", "dev-secret-key")
 app.config["SESSION_COOKIE_HTTPONLY"] = True
-app.config["SESSION_COOKIE_SAMESITE"] = "None"   
-app.config["SESSION_COOKIE_SECURE"] = False  
+
 
 # Define metadata, instantiate db
 metadata = MetaData(naming_convention={

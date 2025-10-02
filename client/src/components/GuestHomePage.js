@@ -72,6 +72,7 @@ const GuestHomePage = ({ guest, my_bookings, setBookings }) => {
       .catch((err) => {
         console.error(err)
         alert("Could not cancel booking. Try again.")
+        setBookings(previous)
       })
   }
 
@@ -83,7 +84,7 @@ const GuestHomePage = ({ guest, my_bookings, setBookings }) => {
 
       <h3>Bookings:</h3>
       <ul>
-        {my_bookings.length === 0 ? (
+        {!my_bookings || my_bookings.length === 0 ? (
           <li>No bookings found.</li>
         ) : (
           my_bookings.map((booking) => (
