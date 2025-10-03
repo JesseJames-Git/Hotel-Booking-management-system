@@ -1,126 +1,235 @@
-from flask import request, jsonify
-from config import app, db, bcrypt
-from models import Guests, Hotels, Rooms, Bookings
-from datetime import datetime, timedelta
-from functools import wraps
+from sqlalchemy_serializer import SerializerMixin
+from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.ext.hybrid import hybrid_property
+from config import db, bcrypt, datetime, event
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy import and_
 
-UPDATE_LIMIT_DAYS = 3
 
-# Authorization decorator
-def authorize(f):
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        auth = request.authorization
-        if not auth or not auth.username or not auth.password:
-            return jsonify({"error": "Unauthorized"}), 401
-        guest = Guests.query.filter_by(email=auth.username).first()
-        if not guest or not guest.authenticate(auth.password):
-            return jsonify({"error": "Unauthorized"}), 401
-        return f(guest, *args, **kwargs)
-    return wrapper
+class TimestampMixin:
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
+                           onupdate=datetime.utcnow)
 
-# GUEST ROUTES
-@app.route("/guests", methods=["GET"])
-@authorize
-def get_guests(current_guest):
-    return jsonify([g.to_dict() for g in Guests.query.all()])
 
-@app.route("/guests/<int:id>", methods=["GET"])
-@authorize
-def get_guest(current_guest, id):
-    guest = Guests.query.get_or_404(id)
-    return jsonify(guest.to_dict())
+class Guests(db.Model, SerializerMixin, TimestampMixin):
+    __tablename__ = 'guests'
 
-@app.route("/guests", methods=["POST"])
-def create_guest():
-    data = request.get_json()
-    guest = Guests(
-        name=data.get("name"),
-        email=data.get("email"),
-        password_hash=data.get("password")
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False)
+    email = db.Column(db.String, unique=True, nullable=False)
+    _password_hash = db.Column(db.String, nullable=False)
+
+    # relationships
+    bookings = db.relationship(
+        'Bookings',
+        back_populates='guest',
+        cascade="all, delete-orphan"
     )
-    db.session.add(guest)
-    db.session.commit()
-    return jsonify(guest.to_dict()), 201
 
-@app.route("/guests/<int:id>", methods=["PATCH"])
-@authorize
-def update_guest(current_guest, id):
-    guest = Guests.query.get_or_404(id)
-    data = request.get_json()
-    for key, value in data.items():
-        if hasattr(guest, key):
-            setattr(guest, key, value)
-    db.session.commit()
-    return jsonify(guest.to_dict())
+    # properties
+    @hybrid_property
+    def password_hash(self):
+        return self._password_hash
 
-@app.route("/guests/<int:id>", methods=["DELETE"])
-@authorize
-def delete_guest(current_guest, id):
-    guest = Guests.query.get_or_404(id)
-    db.session.delete(guest)
-    db.session.commit()
-    return {"message": f"Guest {id} deleted"}, 200
+    @password_hash.setter
+    def password_hash(self, password):
+        password_hash = bcrypt.generate_password_hash(password.encode('utf-8'))
+        self._password_hash = password_hash.decode('utf-8')
 
-# HOTELS
-@app.route("/hotels", methods=["GET"])
-def get_hotels():
-    return jsonify([h.to_dict() for h in Hotels.query.all()])
+    def authenticate(self, password):
+        return bcrypt.check_password_hash(self._password_hash, password.encode('utf-8'))
 
-@app.route("/hotels/<int:id>", methods=["GET"])
-def get_hotel(id):
-    hotel = Hotels.query.get_or_404(id)
-    return jsonify(hotel.to_dict())
+    # serialization rules
+    serialize_rules = ('-bookings.guest', '-_password_hash',)
 
-# BOOKINGS
-@app.route("/bookings/guest/<int:guest_id>", methods=["GET"])
-@authorize
-def get_bookings_by_guest(current_guest, guest_id):
-    bookings = Bookings.query.filter_by(guest_id=guest_id).all()
-    return jsonify([b.to_dict() for b in bookings])
 
-@app.route("/bookings", methods=["POST"])
-@authorize
-def create_booking(current_guest):
-    data = request.get_json()
-    check_in = datetime.fromisoformat(data.get("check_in_date"))
-    if check_in - timedelta(days=UPDATE_LIMIT_DAYS) < datetime.utcnow():
-        return jsonify({"error": "Bookings must be made at least 3 days in advance"}), 403
-    booking = Bookings(
-        guest_id=current_guest.id,
-        room_id=data.get("room_id"),
-        check_in_date=check_in,
-        check_out_date=datetime.fromisoformat(data.get("check_out_date")),
-        status=data.get("status", "No Reservation")
+class Hotels(db.Model, SerializerMixin, TimestampMixin):
+    __tablename__ = 'hotels'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False)
+    address = db.Column(db.String, nullable=False)
+    city = db.Column(db.String)
+    country = db.Column(db.String, nullable=False)
+    email = db.Column(db.String, nullable=False)
+    phone = db.Column(db.String, nullable=False)
+
+    # relationships
+    admin = db.relationship('Admins', back_populates='hotel', uselist=False,
+                            cascade="all, delete-orphan")
+    rooms = db.relationship('Rooms', back_populates='hotel',
+                            cascade="all, delete-orphan")
+    hotel_amenities = db.relationship('HotelAmenities', back_populates='hotel',
+                                      cascade="all, delete-orphan")
+
+    # serialize_rules
+    serialize_rules = ('-admin.hotel', '-rooms.hotel', '-hotel_amenities.hotel',)
+
+
+class Admins(db.Model, SerializerMixin, TimestampMixin):
+    __tablename__ = 'admins'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, unique=True,nullable=False)
+    _password_hash = db.Column(db.String, nullable=False)
+    hotel_id = db.Column(db.Integer, db.ForeignKey('hotels.id'))
+
+    # relationships
+    hotel = db.relationship('Hotels', back_populates='admin')
+
+    @hybrid_property
+    def password_hash(self):
+        return self._password_hash
+
+    @password_hash.setter
+    def password_hash(self, password):
+        password_hash = bcrypt.generate_password_hash(password.encode('utf-8'))
+        self._password_hash = password_hash.decode('utf-8')
+
+    def authenticate(self, password):
+        return bcrypt.check_password_hash(self._password_hash, password.encode('utf-8'))
+
+    serialize_rules = ('-hotel.admin', '-_password_hash',)
+
+
+class Rooms(db.Model, SerializerMixin):
+    __tablename__ = 'rooms'
+
+    id = db.Column(db.Integer, primary_key=True)
+    hotel_id = db.Column(db.Integer, db.ForeignKey('hotels.id'))
+    room_type_id = db.Column(db.Integer, db.ForeignKey('room_types.id'))
+    room_name = db.Column(db.String, nullable=False)
+    price_per_night = db.Column(db.Numeric(6, 2), nullable=False)
+    is_available = db.Column(db.Boolean, default=True)
+
+    # relationships
+    hotel = db.relationship('Hotels', back_populates='rooms')
+    room_type = db.relationship('RoomTypes', back_populates='rooms')
+    booked_rooms = db.relationship('BookedRoom', back_populates='room',
+                                   cascade="all, delete-orphan")
+
+    serialize_rules = (
+        '-hotel.rooms',
+        '-room_type.rooms',
+        '-booked_rooms.room',
     )
-    db.session.add(booking)
-    db.session.commit()
-    return jsonify(booking.to_dict()), 201
 
-@app.route("/bookings/guest/<int:guest_id>", methods=["PATCH"])
-@authorize
-def update_booking_by_guest(current_guest, guest_id):
-    bookings = Bookings.query.filter_by(guest_id=guest_id).all()
-    data = request.get_json()
-    for booking in bookings:
-        if booking.check_in_date - timedelta(days=UPDATE_LIMIT_DAYS) < datetime.utcnow():
-            return jsonify({"error": "Cannot update bookings within 3 days of check-in"}), 403
-        for key, value in data.items():
-            if hasattr(booking, key):
-                if key in ["check_in_date", "check_out_date"]:
-                    setattr(booking, key, datetime.fromisoformat(value))
-                else:
-                    setattr(booking, key, value)
-    db.session.commit()
-    return jsonify([b.to_dict() for b in bookings])
+    # association proxy
+    bookings = association_proxy('booked_rooms', 'booking')
 
-@app.route("/bookings/guest/<int:guest_id>", methods=["DELETE"])
-@authorize
-def delete_bookings_by_guest(current_guest, guest_id):
-    bookings = Bookings.query.filter_by(guest_id=guest_id).all()
-    for booking in bookings:
-        if booking.check_in_date - timedelta(days=UPDATE_LIMIT_DAYS) < datetime.utcnow():
-            return jsonify({"error": "Cannot delete bookings within 3 days of check-in"}), 403
-        db.session.delete(booking)
-    db.session.commit()
-    return {"message": f"Bookings for guest {guest_id} deleted"}, 200
+    @hybrid_property
+    def currently_available(self):
+        from datetime import datetime
+        now = datetime.utcnow()
+        active_booking = any(
+            b.check_in_date <= now < b.check_out_date
+            for b in self.bookings
+        )
+        return not active_booking
+
+    @currently_available.expression
+    def currently_available(cls):
+        from datetime import datetime
+        now = datetime.utcnow()
+        return ~db.exists().where(
+            and_(
+                BookedRoom.room_id == cls.id,
+                Bookings.id == BookedRoom.booking_id,
+                Bookings.check_in_date <= now,
+                Bookings.check_out_date > now,
+            )
+        )
+
+
+class RoomTypes(db.Model, SerializerMixin):
+    __tablename__ = 'room_types'
+
+    id = db.Column(db.Integer, primary_key=True)
+    type_name = db.Column(db.String, nullable=False)
+    description = db.Column(db.Text)
+
+    rooms = db.relationship('Rooms', back_populates='room_type',
+                            cascade="all, delete-orphan")
+
+    serialize_rules = ('-rooms.room_type',)
+
+
+class Bookings(db.Model, SerializerMixin):
+    __tablename__ = 'bookings'
+
+    id = db.Column(db.Integer, primary_key=True)
+    guest_id = db.Column(db.Integer, db.ForeignKey('guests.id'))
+    check_in_date = db.Column(db.DateTime, nullable=False)
+    check_out_date = db.Column(db.DateTime, nullable=False)
+    status = db.Column(db.String, default='No Reservation') 
+
+    guest = db.relationship('Guests', back_populates='bookings')
+    booked_rooms = db.relationship('BookedRoom', back_populates='booking',
+                                   cascade="all, delete-orphan")
+
+    rooms = association_proxy('booked_rooms', 'room')
+
+    serialize_rules = (
+        '-guest.bookings',
+        '-booked_rooms.booking',
+    )
+
+
+class BookedRoom(db.Model, SerializerMixin):
+    __tablename__ = 'booked_rooms'
+
+    booking_id = db.Column(db.Integer, db.ForeignKey('bookings.id'), primary_key=True)
+    room_id = db.Column(db.Integer, db.ForeignKey('rooms.id'), primary_key=True)
+
+    room = db.relationship('Rooms', back_populates='booked_rooms')
+    booking = db.relationship('Bookings', back_populates='booked_rooms')
+
+    serialize_rules = ('-room.booked_rooms', '-booking.booked_rooms',)
+
+#--------------------event listeners----------------------
+
+@event.listens_for(BookedRoom, "after_insert")
+def mark_room_unavailable(mapper, connection, target):
+    connection.execute(
+        Rooms.__table__.update()
+        .where(Rooms.id == target.room_id)
+        .values(is_available=False)
+    )
+
+
+
+@event.listens_for(BookedRoom, "after_delete")
+def mark_room_available(mapper, connection, target):
+    connection.execute(
+        Rooms.__table__.update()
+        .where(Rooms.id == target.room_id)
+        .values(is_available=True)
+    )
+
+
+
+class Amenities(db.Model, SerializerMixin):
+    __tablename__ = 'amenities'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False)
+    description = db.Column(db.Text)
+
+    hotel_amenities = db.relationship('HotelAmenities', back_populates='amenity',
+                                      cascade="all, delete-orphan")
+
+    serialize_rules = ('-hotel_amenities.amenity',)
+
+
+class HotelAmenities(db.Model, SerializerMixin):
+    __tablename__ = 'hotel_amenities'
+
+    id = db.Column(db.Integer, primary_key=True)
+    hotel_id = db.Column(db.Integer, db.ForeignKey('hotels.id'))
+    amenity_id = db.Column(db.Integer, db.ForeignKey('amenities.id'))
+
+    hotel = db.relationship('Hotels', back_populates='hotel_amenities')
+    amenity = db.relationship('Amenities', back_populates='hotel_amenities')
+
+    serialize_rules = ('-amenity.hotel_amenities', '-hotel.hotel_amenities',)
