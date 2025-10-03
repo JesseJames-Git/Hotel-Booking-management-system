@@ -187,5 +187,9 @@ if __name__ == '__main__':
             guests + hotel_amenities + hotels + admins + bookings + amenities + rooms + room_types
         )
         db.session.commit()
+<<<<<<< HEAD
         print("Data Seeded sucessfully")
     
+=======
+        print("Data Seeded sucessfully")
+>>>>>>> ef674dd (Implement admin interface components:)
