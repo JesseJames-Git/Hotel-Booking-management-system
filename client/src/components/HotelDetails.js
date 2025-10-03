@@ -1,49 +1,80 @@
-import React, { useState, useEffect } from "react"
-import { Link } from "react-router-dom"
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import "../styling/HotelDetails.css";
 
 const HotelDetails = ({ match }) => {
-  const { id } = match.params
-  const [hotel, setHotel] = useState(null)
+  const { id } = match.params;
+  const [hotel, setHotel] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch(`/hotels/${id}`)
       .then((r) => r.json())
-      .then((d) => setHotel(d))
-  }, [id])
+      .then((d) => {
+        setHotel(d);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [id]);
 
-  if (!hotel) return <p>Loading...</p>
+  if (loading) return <p className="loading">Loading hotel details...</p>;
+  if (!hotel) return <p className="error">Hotel not found.</p>;
 
   return (
-    <div>
-      <h1>{hotel.name}</h1>
-      <p>{hotel.city}, {hotel.country}</p>
-      <p>{hotel.address}</p>
-      <p>{hotel.phone}</p>
+    <div className="hotel-details">
+      <div className="hotel-header">
+        <h1>{hotel.name}</h1>
+        <p className="location">
+          📍 {hotel.city}, {hotel.country}
+        </p>
+        <p>{hotel.address}</p>
+        <p>📞 {hotel.phone}</p>
+      </div>
 
-      <h3>Amenities</h3>
-      <ul>
-        {hotel.hotel_amenities?.map((a) => (
-          <li key={a.id}>{a.name}: {a.description}</li>
-        ))}
-      </ul>
+      <div className="details-section">
+        <h3>✨ Amenities</h3>
+        {hotel.hotel_amenities?.length ? (
+          <ul className="amenities-list">
+            {hotel.hotel_amenities.map((a) => (
+              <li key={a.id}>
+                <strong>{a.name}:</strong> {a.description}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No amenities listed.</p>
+        )}
+      </div>
 
-      <h3>Rooms</h3>
-      <ul>
-        {hotel.rooms?.map((r) => (
-          <li key={r.id}>
-            {r.room_name} — {r.room_type?.type_name} (${r.price_per_night})
-          </li>
-        ))}
-      </ul>
+      <div className="details-section">
+        <h3>🛏 Rooms</h3>
+        {hotel.rooms?.length ? (
+          <div className="rooms-grid">
+            {hotel.rooms.map((r) => (
+              <div key={r.id} className="room-card">
+                <h4>{r.room_name}</h4>
+                <p>Type: {r.room_type?.type_name}</p>
+                <p>
+                  💵 <strong>${r.price_per_night}</strong> / night
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p>No rooms available.</p>
+        )}
+      </div>
 
-      <Link to="/hotels">
-        <button>⬅ Back to Hotels</button>
-      </Link>
-      <Link to={`/hotels/${id}/book`}>
-        <button> Book Now </button>
-      </Link>
+      <div className="actions">
+        <Link to="/hotels">
+          <button className="btn btn-secondary">⬅ Back to Hotels</button>
+        </Link>
+        <Link to={`/hotels/${id}/book`}>
+          <button className="btn btn-primary">Book Now</button>
+        </Link>
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default HotelDetails
+export default HotelDetails;

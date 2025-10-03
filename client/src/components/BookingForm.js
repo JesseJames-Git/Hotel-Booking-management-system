@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useHistory, useParams, Link } from 'react-router-dom';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as yup from 'yup'; 
+import '../styling/BookingForm.css';
 
 // --- Yup Validation Schema ---
 const BookingSchema = yup.object().shape({
@@ -116,11 +117,9 @@ const BookingForm = ({ currentUser, onBookingSuccess }) => {
   };
 
   return (
-    <div style={styles.container}>
-      <h2 style={{...styles.header, color: '#007bff'}}>New Room Booking</h2>
-      <p style={styles.subHeader}>
-        Select a room to continue.
-      </p>
+    <div className="booking-container">
+      <h2 className="booking-header">🛎️ New Room Booking</h2>
+      <p className="booking-subheader">Select a room to continue your reservation.</p>
       
       <Formik
         initialValues={initialValues}
@@ -128,127 +127,52 @@ const BookingForm = ({ currentUser, onBookingSuccess }) => {
         onSubmit={handleSubmit}
       >
         {({ isSubmitting }) => (
-          <Form style={styles.form}>
+          <Form className="booking-form">
             {/* Room Selection */}
-            <label htmlFor="roomId" style={styles.label}>Select Room</label>
+            <label htmlFor="roomId" className="form-label">Select Room</label>
             <Field 
               as="select" 
               id="roomId" 
               name="roomId" 
-              style={styles.input}
+              className="form-input"
               disabled={isRoomsLoading || fetchError}
             >
               <option value="">-- Select a Room --</option>
               {renderRoomOptions()}
             </Field>
-            <ErrorMessage name="roomId" component="div" style={styles.errorMessageField} />
+            <ErrorMessage name="roomId" component="div" className="form-error" />
 
             {/* Dates */}
-            <label htmlFor="check_in_date" style={styles.label}>Check-in Date</label>
-            <Field type="date" id="check_in_date" name="check_in_date" style={styles.input} />
-            <ErrorMessage name="check_in_date" component="div" style={styles.errorMessageField} />
+            <label htmlFor="check_in_date" className="form-label">Check-in Date</label>
+            <Field type="date" id="check_in_date" name="check_in_date" className="form-input" />
+            <ErrorMessage name="check_in_date" component="div" className="form-error" />
 
-            <label htmlFor="check_out_date" style={styles.label}>Check-out Date</label>
-            <Field type="date" id="check_out_date" name="check_out_date" style={styles.input} />
-            <ErrorMessage name="check_out_date" component="div" style={styles.errorMessageField} />
+            <label htmlFor="check_out_date" className="form-label">Check-out Date</label>
+            <Field type="date" id="check_out_date" name="check_out_date" className="form-input" />
+            <ErrorMessage name="check_out_date" component="div" className="form-error" />
 
             <button 
               type="submit" 
               disabled={isSubmitting || isLoading || isRoomsLoading || availableRooms.length === 0} 
-              style={{...styles.button, backgroundColor: '#007bff'}}
+              className="submit-btn"
             >
               {isLoading || isSubmitting ? 'Processing...' : 'Confirm Booking'}
             </button>
 
             {(submissionError || fetchError) && (
-              <div style={styles.errorContainer}>
-                <p style={styles.errorMessage}>Error: {submissionError || fetchError}</p>
+              <div className="error-box">
+                <p className="error-text">⚠️ {submissionError || fetchError}</p>
               </div>
             )}
           </Form>
         )}
       </Formik>
       
-      <p style={styles.footer}>
-        <Link to="/guest/home" style={{color: '#666'}}>Cancel and go back</Link>
+      <p className="booking-footer">
+        <Link to="/guest/home" className="cancel-link">← Cancel and go back</Link>
       </p>
     </div>
   );
 };
 
 export default BookingForm;
-
-const styles = {
-    container: {
-        maxWidth: '500px',
-        margin: '50px auto',
-        padding: '30px',
-        border: '1px solid #dcdcdc',
-        borderRadius: '12px',
-        boxShadow: '0 6px 16px rgba(0,0,0,0.1)',
-        backgroundColor: '#f9f9f9',
-    },
-    header: {
-        textAlign: 'center',
-        marginBottom: '10px',
-    },
-    subHeader: {
-        textAlign: 'center',
-        marginBottom: '25px',
-        color: '#666',
-        fontSize: '14px',
-    },
-    form: {
-        display: 'flex',
-        flexDirection: 'column',
-    },
-    label: {
-        marginBottom: '5px',
-        fontWeight: '600',
-        fontSize: '14px',
-        color: '#333',
-    },
-    input: {
-        padding: '12px',
-        marginBottom: '5px', 
-        border: '1px solid #ccc',
-        borderRadius: '6px',
-        fontSize: '16px',
-        backgroundColor: '#fff',
-        transition: 'border-color 0.3s',
-    },
-    button: {
-        padding: '12px',
-        color: 'white',
-        border: 'none',
-        borderRadius: '6px',
-        cursor: 'pointer',
-        fontSize: '16px',
-        fontWeight: 'bold',
-        marginTop: '25px', 
-        transition: 'background-color 0.3s',
-    },
-    errorContainer: {
-        marginTop: '15px',
-        padding: '10px',
-        backgroundColor: '#ffe6e6',
-        border: '1px solid #ff9999',
-        borderRadius: '6px',
-    },
-    errorMessage: {
-        margin: '5px 0',
-        color: '#cc0000',
-        fontSize: '14px',
-    },
-    errorMessageField: {
-        color: '#cc0000',
-        fontSize: '12px',
-        marginBottom: '15px',
-        marginTop: '2px',
-    },
-    footer: {
-        textAlign: 'center',
-        marginTop: '25px',
-        fontSize: '14px',
-    }
-};

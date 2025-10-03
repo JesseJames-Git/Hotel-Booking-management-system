@@ -1,4 +1,5 @@
 import React, { useState } from "react"
+import "../styling/GuestHomePage.css"
 
 const GuestHomePage = ({ guest, my_bookings, setBookings }) => {
   const [editingBookingId, setEditingBookingId] = useState(null)
@@ -7,8 +8,8 @@ const GuestHomePage = ({ guest, my_bookings, setBookings }) => {
 
   const handleUpdate = (booking) => {
     setEditingBookingId(booking.id)
-    const inDate = booking.check_in_date ? booking.check_in_date.split(" ")[0] : ""
-    const outDate = booking.check_out_date ? booking.check_out_date.split(" ")[0] : ""
+    const inDate = booking.check_in_date ? booking.check_in_date.split("T")[0] : ""
+    const outDate = booking.check_out_date ? booking.check_out_date.split("T")[0] : ""
     setDates({ check_in_date: inDate, check_out_date: outDate })
   }
 
@@ -68,7 +69,6 @@ const GuestHomePage = ({ guest, my_bookings, setBookings }) => {
           throw new Error("Failed to delete booking")
         }
       })
-      .then((updatedBookingList) => setBookings(updatedBookingList))
       .catch((err) => {
         console.error(err)
         alert("Could not cancel booking. Try again.")
@@ -77,50 +77,37 @@ const GuestHomePage = ({ guest, my_bookings, setBookings }) => {
   }
 
   return (
-    <div>
-      <h3>Home Page:</h3>
-      <p>Name: {guest.name}</p>
-      <p>Email: {guest.email}</p>
+    <div className="guest-home">
+      <div className="guest-profile">
+        <h2>👤 Welcome, {guest.name}</h2>
+        <p>{guest.email}</p>
+      </div>
 
-      <h3>Bookings:</h3>
-      <ul>
+      <h3>Your Bookings</h3>
+      <div className="bookings-list">
         {!my_bookings || my_bookings.length === 0 ? (
-          <li>No bookings found.</li>
+          <p className="no-bookings">No bookings found.</p>
         ) : (
           my_bookings.map((booking) => (
-            <li key={booking.id}>
-              <p>
-                <strong>Booking status:</strong> {booking.status}
+            <div key={booking.id} className="booking-card">
+              <p className={`status ${booking.status.toLowerCase()}`}>
+                Status: {booking.status}
               </p>
 
-              <div>
-                <strong>Rooms:</strong>
-                <ul>
-                  {booking.rooms.map((r, index) => (
-                    <li key={index}>
-                      <p>
-                        <strong>Hotel:</strong> {r.hotel?.name || "N/A"}
-                      </p>
-                      <p>
-                        <strong>Room Name:</strong> {r.room_name}
-                      </p>
-                      <p>
-                        <strong>Room Type:</strong> {r.room_type?.type_name}
-                      </p>
-                      <p>
-                        <strong>Price per Night:</strong> {r.price_per_night}
-                      </p>
-                      <p>
-                        <strong>Availability:</strong>{" "}
-                        {r.is_available ? "Available" : "Not Available"}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
+              <div className="room-info">
+                {booking.rooms.map((r, index) => (
+                  <div key={index} className="room-details">
+                    <p><strong>Hotel:</strong> {r.hotel?.name || "N/A"}</p>
+                    <p><strong>Room:</strong> {r.room_name}</p>
+                    <p><strong>Type:</strong> {r.room_type?.type_name}</p>
+                    <p><strong>Price/Night:</strong> ${r.price_per_night}</p>
+                    <p><strong>Availability:</strong> {r.is_available ? "✅ Available" : "❌ Not Available"}</p>
+                  </div>
+                ))}
               </div>
 
               {editingBookingId === booking.id ? (
-                <div style={{ marginTop: 8 }}>
+                <div className="edit-dates">
                   <label>
                     New Check-in:
                     <input
@@ -130,7 +117,7 @@ const GuestHomePage = ({ guest, my_bookings, setBookings }) => {
                       onChange={handleDateChange}
                     />
                   </label>
-                  <label style={{ marginLeft: 8 }}>
+                  <label>
                     New Check-out:
                     <input
                       type="date"
@@ -139,45 +126,29 @@ const GuestHomePage = ({ guest, my_bookings, setBookings }) => {
                       onChange={handleDateChange}
                     />
                   </label>
-                  <div style={{ marginTop: 8 }}>
-                    <button onClick={() => handleSubmitUpdate(booking.id)} disabled={saving}>
+                  <div className="actions">
+                    <button className="btn btn-primary" onClick={() => handleSubmitUpdate(booking.id)} disabled={saving}>
                       {saving ? "Saving..." : "Save"}
                     </button>
-                    <button
-                      onClick={() => {
-                        setEditingBookingId(null)
-                      }}
-                      style={{ marginLeft: 8 }}
-                      disabled={saving}
-                    >
+                    <button className="btn btn-secondary" onClick={() => setEditingBookingId(null)} disabled={saving}>
                       Cancel
                     </button>
                   </div>
                 </div>
               ) : (
-                <>
-                  <p>
-                    <strong>Check-in:</strong>{" "}
-                    {booking.check_in_date
-                      ? new Date(booking.check_in_date).toLocaleDateString()
-                      : "N/A"}
-                  </p>
-                  <p>
-                    <strong>Check-out:</strong>{" "}
-                    {booking.check_out_date
-                      ? new Date(booking.check_out_date).toLocaleDateString()
-                      : "N/A"}
-                  </p>
-                  <button onClick={() => handleUpdate(booking)}>Update Check-in/ Check-out Dates</button>
-                  <button onClick={() => handleCancel(booking.id)} style={{ marginLeft: 8 }}>
-                    Cancel Reservation
-                  </button>
-                </>
+                <div className="dates-and-buttons">
+                  <p><strong>Check-in:</strong> {booking.check_in_date ? new Date(booking.check_in_date).toLocaleDateString() : "N/A"}</p>
+                  <p><strong>Check-out:</strong> {booking.check_out_date ? new Date(booking.check_out_date).toLocaleDateString() : "N/A"}</p>
+                  <div className="actions">
+                    <button className="btn btn-primary" onClick={() => handleUpdate(booking)}>Update Dates</button>
+                    <button className="btn btn-danger" onClick={() => handleCancel(booking.id)}>Cancel</button>
+                  </div>
+                </div>
               )}
-            </li>
+            </div>
           ))
         )}
-      </ul>
+      </div>
     </div>
   )
 }

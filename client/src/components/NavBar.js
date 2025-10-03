@@ -1,5 +1,6 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
+import "../styling/NavBar.css";
 
 const NavBar = ({ user, setUser }) => {
   const handleLogout = () => {
@@ -9,44 +10,83 @@ const NavBar = ({ user, setUser }) => {
   };
 
   return (
-    <nav style={styles.nav}>
-      <h2 style={styles.brand}>Hotel Booking Management App 🏨</h2>
-      <div>
+    <nav className="navbar">
+      <h2 className="brand">Hotel Booking Management App</h2>
+      <br />
+      <div className="nav-links">
         {user ? (
           <>
-            <span style={styles.welcome}>
+            <span className="welcome">
               Welcome, {user.name || user.email} 🎉
             </span>
+
+            <NavLink to="/home" className="link" activeClassName="active-link">
+              Home
+            </NavLink>
+
             {user.role === "guest" && (
-              <Link to="/guest/home" style={styles.link}>
-                Guest Home
-              </Link>
+              <NavLink
+                to="/guest/home"
+                className="link"
+                activeClassName="active-link"
+              >
+                Bookings
+              </NavLink>
             )}
             {user.role === "admin" && (
-              <Link to="/admin/home" style={styles.link}>
+              <NavLink
+                to="/admin/home"
+                className="link"
+                activeClassName="active-link"
+              >
                 Admin Home
-              </Link>
+              </NavLink>
             )}
 
-            <Link to="/hotels" style={styles.link}>View Hotels</Link>
-            <button onClick={handleLogout} style={styles.button}>
+            <NavLink
+              to="/hotels"
+              className="link"
+              activeClassName="active-link"
+            >
+              View Hotels
+            </NavLink>
+            <button onClick={handleLogout} className="btn logout-btn">
               Logout
             </button>
           </>
         ) : (
           <>
-            <Link to="/guest/login" style={styles.link}>
+            <NavLink to="/home" className="link" activeClassName="active-link">
+              Home
+            </NavLink>
+            <NavLink
+              to="/guest/login"
+              className="link"
+              activeClassName="active-link"
+            >
               Guest Login
-            </Link>
-            <Link to="/guest/signup" style={styles.link}>
+            </NavLink>
+            <NavLink
+              to="/guest/signup"
+              className="link"
+              activeClassName="active-link"
+            >
               Guest Sign Up
-            </Link>
-            <Link to="/admin/login" style={styles.link}>
+            </NavLink>
+            <NavLink
+              to="/admin/login"
+              className="link"
+              activeClassName="active-link"
+            >
               Admin Login
-            </Link>
-            <Link to="/admin/signup" style={styles.link}>
+            </NavLink>
+            <NavLink
+              to="/admin/signup"
+              className="link"
+              activeClassName="active-link"
+            >
               Admin Sign Up
-            </Link>
+            </NavLink>
           </>
         )}
       </div>
@@ -55,36 +95,3 @@ const NavBar = ({ user, setUser }) => {
 };
 
 export default NavBar;
-
-const styles = {
-  nav: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    background: "#f5f5f5",
-    padding: "10px 20px",
-    borderBottom: "1px solid #ddd",
-  },
-  brand: {
-    margin: 0,
-  },
-  link: {
-    marginLeft: "15px",
-    textDecoration: "none",
-    color: "#008CBA",
-    fontWeight: "bold",
-  },
-  button: {
-    marginLeft: "15px",
-    backgroundColor: "#f44336",
-    border: "none",
-    color: "white",
-    padding: "6px 12px",
-    cursor: "pointer",
-    borderRadius: "5px",
-  },
-  welcome: {
-    marginRight: "15px",
-    fontWeight: "500",
-  },
-};
