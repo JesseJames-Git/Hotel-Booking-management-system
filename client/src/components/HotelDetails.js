@@ -35,15 +35,16 @@ const HotelDetails = ({ match }) => {
         <h3>✨ Amenities</h3>
         {hotel.hotel_amenities?.length ? (
           <ul className="amenities-list">
-            {hotel.hotel_amenities.map((a) => (
-              <li key={a.id}>
-                <strong>{a.name}:</strong> {a.description}
+            {hotel.hotel_amenities.map((ha) => (
+              <li key={ha.id}>
+                <strong>{ha.amenity?.name}:</strong> {ha.amenity?.description}
               </li>
             ))}
           </ul>
         ) : (
           <p>No amenities listed.</p>
         )}
+
       </div>
 
       <div className="details-section">

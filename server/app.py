@@ -181,7 +181,7 @@ class GuestBookings(Resource):
 
         bookings = Bookings.query.filter_by(guest_id=guest_id).all()
 
-        data = [b.to_dict(only=('id','rooms.hotel.name', 'rooms.room_name','rooms.room_type.type_name','check_in_date','check_out_date','status',))
+        data = [b.to_dict(only=('id','rooms.hotel.name', 'rooms.room_name','rooms.price_per_night','rooms.room_type.type_name','check_in_date','check_out_date','status',))
                 for b in bookings]
         return make_response(jsonify(data), 200)
     
@@ -234,7 +234,7 @@ class BookingById(Resource):
 
         db.session.commit()
         return make_response(jsonify(booking.to_dict(only=(
-            'id','rooms.hotel.name', 'rooms.room_name','rooms.room_type.type_name','check_in_date','check_out_date','status',)
+            'id','rooms.hotel.name', 'rooms.room_name','rooms.room_type.type_name','check_in_date','rooms.price_per_night','check_out_date','status',)
         )), 200)
 
     def delete(self, booking_id):
@@ -250,7 +250,7 @@ class BookingById(Resource):
         bookings = Bookings.query.filter_by(guest_id=guest_id).all()
         data = [
             b.to_dict(only=(
-                'id','rooms.hotel.name','rooms.room_name',
+                'id','rooms.hotel.name','rooms.room_name', 'rooms.price_per_night',
                 'rooms.room_type.type_name','check_in_date',
                 'check_out_date','status',
             ))

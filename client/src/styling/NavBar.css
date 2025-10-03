@@ -8,13 +8,14 @@
   border-bottom: 2px solid #eaeaea;
   color: white;
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  height: 200px;
+  height: 160px;
+  max-height: 160px;
 }
 
 /* Brand / title */
 .brand {
-  margin-top: 20px;
-  margin-bottom: 80px;
+  margin-top: 10px;
+  margin-bottom: 42px;
   color: #2a3951;
   font-size: 50px;
   font-weight: bold;
