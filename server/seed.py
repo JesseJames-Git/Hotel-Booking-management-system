@@ -8,6 +8,7 @@ from faker import Faker
 
 # Local imports
 from app import app
+from config import timedelta
 from models import (
     db,
     Guests, 
@@ -20,8 +21,8 @@ from models import (
     RoomTypes, 
     BookedRoom,
     datetime, 
-    timedelta
 )
+
 
 if __name__ == '__main__':
     fake = Faker()
@@ -111,7 +112,7 @@ if __name__ == '__main__':
                 price_per_night=fake.pyfloat(left_digits=6, right_digits=2, min_value=5000, max_value=80000),
                 is_available=fake.pybool()
             )
-            for _ in range(30)
+            for _ in range(200)
         ]
         print("Seeded rooms data")
 
@@ -142,7 +143,7 @@ if __name__ == '__main__':
                 hotel_id=randint(1, 20),
                 amenity_id=randint(1, 10)
             )
-            for _ in range(20)
+            for _ in range(50)
         ]
         print("Seeded hotel_amenities data")
 
