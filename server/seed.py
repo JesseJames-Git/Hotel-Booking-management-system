@@ -8,45 +8,121 @@ from faker import Faker
 
 # Local imports
 from app import app
-from config import timedelta
+from config import db, timedelta
 from models import (
-    db,
-    Guests, 
-    HotelAmenities, 
-    Hotels, 
-    Admins, 
-    Bookings, 
-    Amenities, 
-    Rooms, 
-    RoomTypes, 
+    Guests,
+    HotelAmenities,
+    Hotels,
+    Admins,
+    Bookings,
+    Amenities,
+    Rooms,
+    RoomTypes,
     BookedRoom,
-    datetime, 
+    datetime,
 )
 
+fake = Faker()
 
-if __name__ == '__main__':
-    fake = Faker()
+if __name__ == "__main__":
     with app.app_context():
+        print("Clearing old data...")
 
-        # Clear existing data in correct order
         BookedRoom.query.delete()
-        Guests.query.delete()
-        HotelAmenities.query.delete()
-        Hotels.query.delete()
-        Admins.query.delete()
         Bookings.query.delete()
-        Amenities.query.delete()
+        HotelAmenities.query.delete()
         Rooms.query.delete()
         RoomTypes.query.delete()
+        Hotels.query.delete()
+        Admins.query.delete()
+        Amenities.query.delete()
+        Guests.query.delete()
 
-        print("Starting seed...")
+        db.session.commit()
 
-        check_in_date = fake.date_time_between_dates(
-            datetime_start=datetime(2025,1,1),
-            datetime_end=datetime.utcnow()
-        )
-        check_out_date = check_in_date + timedelta(days=fake.random_int(min=1, max=30))
+        print("Starting fresh seed...")
 
+        # Guests
+        guests = [
+            Guests(
+                name=fake.name(),
+                email=fake.email(),
+                _password_hash="password123",
+            )
+            for _ in range(50)
+        ]
+        db.session.add_all(guests)
+        db.session.commit()
+        print("Seeded Guests")
+
+        # Admins
+        admins = [
+            Admins(
+                name=fake.name(),
+                _password_hash="password123",
+            )
+            for _ in range(10)
+        ]
+        db.session.add_all(admins)
+        db.session.commit()
+        print("Seeded Admins")
+
+        # Hotels
+        hotels = []
+        for admin in admins:
+            hotel = Hotels(
+                name=fake.company(),
+                address=fake.address(),
+                city=fake.city(),
+                country=fake.country(),
+                email=fake.email(),
+                phone=fake.phone_number(),
+                admin=admin,
+            )
+            hotels.append(hotel)
+
+        db.session.add_all(hotels)
+        db.session.commit()
+        print("Seeded Hotels linked to Admins")
+
+        # Room Types
+        room_types_list = [
+            "Single Room",
+            "Double Room",
+            "Twin Room",
+            "Suite",
+            "Deluxe Room",
+        ]
+        room_types = [
+            RoomTypes(
+                type_name=type_name,
+                description=fake.sentence(),
+            )
+            for type_name in room_types_list
+        ]
+        db.session.add_all(room_types)
+        db.session.commit()
+        print("Seeded Room Types")
+
+        # Rooms
+        rooms = []
+        for _ in range(100):
+            room = Rooms(
+                hotel=rc(hotels),
+                room_type=rc(room_types),
+                room_name=f"Room-{randint(100, 999)}",
+                price_per_night=fake.pyfloat(
+                    left_digits=5, right_digits=2, min_value=5000, max_value=80000
+                ),
+                is_available=fake.pybool(),
+            )
+            rooms.append(room)
+
+        db.session.add_all(rooms)
+        db.session.commit()
+        print("Seeded Rooms")
+
+        #  Amenities
         amenities_list = [
             "Free Wi-Fi",
             "Swimming Pool",
@@ -57,112 +133,51 @@ if __name__ == '__main__':
             "Free Parking",
             "Airport Shuttle",
             "Business Center",
-            "Laundry Service"
+            "Laundry Service",
         ]
-
-        room_types_list = [
-            "Single Room",
-            "Double Room",
-            "Twin Room",
-            "Suite",
-            "Deluxe Room"
-        ]
-
-        # Guests
-        guests = [
-            Guests(
-                name=fake.name(),
-                email=fake.email(),
-                _password_hash="password123"
-            )
-            for _ in range(100)
-        ]
-        print("Seeded Guests data")
-
-        # Hotels
-        hotels = [
-            Hotels(
-                name=fake.company(),
-                address=fake.address(),
-                city=fake.city(),
-                country=fake.country(),
-                email=fake.email(),
-                phone='0738495392'
-            )
-            for _ in range(20)
-        ]
-        print("Seeded hotels data")
-
-        # RoomTypes
-        room_types = [
-            RoomTypes(
-                type_name=rc(room_types_list),
-                description=fake.sentence()
-            )
-            for _ in range(5)
-        ]
-        print("Seeded room types data")
-
-        # Rooms
-        rooms = [
-            Rooms(
-                hotel_id=randint(1, 20),
-                room_type_id=randint(1, 5),
-                room_name=f"Room-{randint(100, 999)}",
-                price_per_night=fake.pyfloat(left_digits=6, right_digits=2, min_value=5000, max_value=80000),
-                is_available=fake.pybool()
-            )
-            for _ in range(200)
-        ]
-        print("Seeded rooms data")
-
-        # Admins
-        admins = [
-            Admins(
-                name=fake.name(),
-                hotel_id=randint(1, 20),
-                _password_hash="password123"
-            )
-            for _ in range(15)
-        ]
-        print("Seeded admins data")
-
-        # Amenities
         amenities = [
             Amenities(
-                name=rc(amenities_list),
+                name=amenity,
                 description=fake.sentence(),
             )
-            for _ in range(10)
+            for amenity in amenities_list
         ]
-        print("Seeded amenities data")
+        db.session.add_all(amenities)
+        db.session.commit()
+        print(" Seeded Amenities")
 
-        # HotelAmenities
+        # Hotel Amenities (linking hotels and amenities)
         hotel_amenities = [
             HotelAmenities(
-                hotel_id=randint(1, 20),
-                amenity_id=randint(1, 10)
+                hotel=rc(hotels),
+                amenity=rc(amenities),
             )
             for _ in range(50)
         ]
-        print("Seeded hotel_amenities data")
+        db.session.add_all(hotel_amenities)
+        db.session.commit()
+        print("Seeded Hotel Amenities")
 
-        # Bookings
-        bookings = [
-            Bookings(
-                guest_id=randint(1, 100),
+        #  Bookings (linked to valid Guests and Rooms)
+        bookings = []
+        for _ in range(40):
+            guest = rc(guests)
+            check_in_date = fake.date_time_between(start_date="-6m", end_date="now")
+            check_out_date = check_in_date + timedelta(days=fake.random_int(min=1, max=10))
+
+            booking = Bookings(
+                guest_id=guest.id,
                 check_in_date=check_in_date,
                 check_out_date=check_out_date,
-                status=rc(['Confirmed', 'Pending', 'Denied'])
+                status=rc(["Confirmed", "Pending", "Denied"]),
             )
-            for _ in range(20)
-        ]
-        print("Seeded bookings data")
+            bookings.append(booking)
 
-        db.session.add_all(guests + hotels + room_types + rooms + admins + amenities + hotel_amenities + bookings)
+        db.session.add_all(bookings)
         db.session.commit()
+        print("Seeded Bookings linked to Guests")
 
-        # BookedRoom
+        # Booked Rooms (link bookings to hotel rooms)
         booked_rooms = []
         for booking in bookings:
             for room in fake.random_elements(elements=rooms, length=randint(1, 3), unique=True):
@@ -170,5 +185,6 @@ if __name__ == '__main__':
 
         db.session.add_all(booked_rooms)
         db.session.commit()
+        print(" Seeded Booked Rooms")
 
-        print("Data Seeded successfully")
+        print(" All data seeded successfully!")

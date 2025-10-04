@@ -217,7 +217,7 @@ class BookingById(Resource):
     def patch(self, booking_id):
 
         guest_id = session.get("guest_id")
-        admin_id = session.get("admin_id") or 5
+        admin_id = session.get("admin_id")
 
         if guest_id:
             booking = Bookings.query.filter_by(id=booking_id, guest_id=guest_id).first()
@@ -347,6 +347,10 @@ class HotelsList(Resource):
         ))for h in Hotels.query.all()]
 
     def post(self):
+        admin_id = session.get("admin_id")
+        if not admin_id:
+            return {"error": "Unauthorized"}, 401
+
         data = request.get_json()
         hotel = Hotels(
             name=data.get("name"),
@@ -355,6 +359,7 @@ class HotelsList(Resource):
             country=data.get("country"),
             phone=data.get("phone"),
             email=data.get("email"),
+            admin_id=admin_id
         )
         db.session.add(hotel)
         db.session.commit()
@@ -391,6 +396,21 @@ class SingleHotel(Resource):
         db.session.delete(hotel)
         db.session.commit()
         return {"message": f"Hotel {id} deleted"}, 200
+    
+class AdminHotel(Resource):
+    def get(self):
+        admin_id = session.get("admin_id") or 7
+
+        if not admin_id:
+            return {"error": "Unauthorized"}, 401
+        
+        my_hotel = Hotels.query.filter_by(admin_id=admin_id).first()
+
+        return make_response(my_hotel.to_dict(only=(
+            "id", "name", "city", "country", "email", 
+            "phone", "rooms.room_name", "rooms.price_per_night"
+        )), 200)
+
     
         
 # Admin Session Management
@@ -450,6 +470,7 @@ api.add_resource(AdminsList, "/admins")
 api.add_resource(AdminLogin, "/admin/login")
 api.add_resource(CheckAdminSession, "/admin")
 api.add_resource(AdminLogout, "/admin/logout")
+api.add_resource(AdminHotel, "/admin/hotel")
 
 # Hotels
 api.add_resource(HotelsList, "/hotels")

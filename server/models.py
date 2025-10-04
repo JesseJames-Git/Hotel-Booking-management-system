@@ -54,10 +54,10 @@ class Hotels(db.Model, SerializerMixin, TimestampMixin):
     country = db.Column(db.String, nullable=False)
     email = db.Column(db.String, nullable=False)
     phone = db.Column(db.String, nullable=False)
+    admin_id = db.Column(db.Integer,  db.ForeignKey('admins.id'))
 
     # relationships
-    admin = db.relationship('Admins', back_populates='hotel', uselist=False,
-                            cascade="all, delete-orphan")
+    admin = db.relationship('Admins', back_populates='hotel')
     rooms = db.relationship('Rooms', back_populates='hotel',
                             cascade="all, delete-orphan")
     hotel_amenities = db.relationship('HotelAmenities', back_populates='hotel',
@@ -81,10 +81,10 @@ class Admins(db.Model, SerializerMixin, TimestampMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, unique=True,nullable=False)
     _password_hash = db.Column(db.String, nullable=False)
-    hotel_id = db.Column(db.Integer, db.ForeignKey('hotels.id'))
 
     # relationships
-    hotel = db.relationship('Hotels', back_populates='admin')
+    hotel = db.relationship('Hotels', back_populates='admin', uselist=False,
+                            cascade="all, delete-orphan")
 
     @hybrid_property
     def password_hash(self):
