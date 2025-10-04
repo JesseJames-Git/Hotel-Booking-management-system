@@ -75,7 +75,7 @@ if __name__ == '__main__':
                 email=fake.email(),
                 _password_hash="password123"
             )
-            for _ in range(25)
+            for _ in range(100)
         ]
         print("Seeded Guests data")
 

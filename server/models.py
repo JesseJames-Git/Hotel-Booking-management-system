@@ -62,9 +62,17 @@ class Hotels(db.Model, SerializerMixin, TimestampMixin):
                             cascade="all, delete-orphan")
     hotel_amenities = db.relationship('HotelAmenities', back_populates='hotel',
                                       cascade="all, delete-orphan")
+    bookings = db.relationship(
+        "Bookings",
+        secondary="booked_rooms",
+        primaryjoin="Hotels.id==Rooms.hotel_id",
+        secondaryjoin="Bookings.id==BookedRoom.booking_id",
+        viewonly=True,
+        overlaps="rooms,booked_rooms"
+    )
 
     # serialize_rules
-    serialize_rules = ('-admin.hotel', '-rooms.hotel', '-hotel_amenities.hotel',)
+    serialize_rules = ('-admin.hotel', '-rooms.hotel', '-hotel_amenities.hotel','-bookings.rooms.hotel','-bookings.guest.booking',)
 
 
 class Admins(db.Model, SerializerMixin, TimestampMixin):

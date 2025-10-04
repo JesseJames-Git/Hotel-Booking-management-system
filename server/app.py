@@ -1,4 +1,5 @@
 from flask import request, jsonify, make_response
+from sqlalchemy.orm import joinedload
 from config import app, db, api, Resource, session
 from models import Hotels, Guests, Rooms, Bookings, BookedRoom, Admins
 from datetime import datetime
@@ -257,6 +258,46 @@ class BookingById(Resource):
             for b in bookings
         ]
         return make_response(jsonify(data), 200)
+    
+
+class BookingByHotelId(Resource):
+    def get(self, hotel_id):
+        bookings = (
+            db.session.query(Bookings)
+            .join(BookedRoom)
+            .join(Rooms)
+            .filter(Rooms.hotel_id == hotel_id)
+            .options(
+                joinedload(Bookings.guest),
+                joinedload(Bookings.booked_rooms).joinedload(BookedRoom.room)
+            )
+            .all()
+        )
+
+        result = []
+        for b in bookings:
+            result.append({
+                "id": b.id,
+                "check_in_date": b.check_in_date.isoformat(),
+                "check_out_date": b.check_out_date.isoformat(),
+                "status": b.status,
+                "guest": {
+                    "id": b.guest.id,
+                    "name": b.guest.name,
+                    "email": b.guest.email
+                } if b.guest else None,
+                "rooms": [
+                    {
+                        "id": br.room.id,
+                        "room_name": br.room.room_name,
+                        "price_per_night": float(br.room.price_per_night),
+                        "is_available": br.room.is_available
+                    }
+                    for br in b.booked_rooms
+                ]
+            })
+
+        return make_response(jsonify(result), 200)
 
 
 # Hotel Resources
@@ -301,7 +342,7 @@ class SingleHotel(Resource):
             "rooms.room_type",
             "rooms.price_per_night",
             "rooms.is_available",
-            "hotel_amenities"
+            "hotel_amenities",
         )), 200)
 
     def put(self, id):
@@ -399,6 +440,7 @@ api.add_resource(RoomsPerHotel, "/hotels/<int:hotel_id>/rooms")
 api.add_resource(BookingListResource, "/bookings")
 api.add_resource(GuestBookings, "/my_bookings")
 api.add_resource(BookingById, "/bookings/<int:booking_id>")
+api.add_resource(BookingByHotelId, "/hotels/<int:hotel_id>/bookings")
 
 
 

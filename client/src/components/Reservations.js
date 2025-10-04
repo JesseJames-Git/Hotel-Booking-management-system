@@ -1,60 +1,45 @@
-import React, { useEffect, useState } from "react";
+import React, {useState, useEffect} from 'react'
+import { Link, useHistory, useParams } from 'react-router-dom'
 
-function Reservations() {
-  const [reservations, setReservations] = useState([]);
+const Reservations = () => {
+  const {hotelId} = useParams()
+  const [bookings, setBookings] = useState([])
 
-  useEffect(() => {
-    fetch("http://127.0.0.1:5000/reservations?hotel_id=1")
-      .then((res) => res.json())
-      .then(setReservations);
-  }, []);
+  useEffect(()=>{
+    fetch(`/hotels/${hotelId}/bookings`)
+    .then((r) => r.json())
+    .then((data) => setBookings(data))
+  }, [hotelId])
 
-  function updateStatus(id, status) {
-    fetch(`http://127.0.0.1:5000/reservations/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status }),
-    })
-      .then((res) => res.json())
-      .then((updated) => {
-        setReservations((prev) =>
-          prev.map((r) => (r.id === id ? updated : r))
-        );
-      });
-  }
 
   return (
     <div>
       <h2>Reservations</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Guest</th>
-            <th>Room</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {reservations.map((r) => (
-            <tr key={r.id}>
-              <td>{r.guest_name}</td>
-              <td>{r.room_number}</td>
-              <td>{r.status}</td>
-              <td>
-                <button onClick={() => updateStatus(r.id, "confirmed")}>
-                  Confirm
-                </button>
-                <button onClick={() => updateStatus(r.id, "cancelled")}>
-                  Cancel
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <ul>
+        {bookings.map((b) =>(
+          <li key={b.id}>
+            <p>Guest Name: {b.guest.name}</p>
+            <p>Guest Email: {b.guest.email}</p>
+            <p>Check-In Date: {b.check_in_date}</p>
+            <p>Check-Out Date: {b.check_out_date}</p>
+
+            <ul>
+              {b.rooms.map((r) =>(
+                <li>
+                  <p>Room Name: {r.room_name}</p>
+                  <p>Price per Night: {r.price_per_night}</p>
+                  <p>Availability: {r.is_available}</p>
+                </li>
+              ))}
+            </ul>
+
+            <span>Status: {b.status}</span>
+          </li>
+        ))}
+      </ul>
+      
     </div>
-  );
+  )
 }
 
-export default Reservations;
+export default Reservations
