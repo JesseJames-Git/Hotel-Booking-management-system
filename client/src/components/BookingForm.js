@@ -1,8 +1,11 @@
 import React from 'react'
+import GuestHeader from './GuestHeader'
 
 const BookingForm = () => {
   return (
-    <div>BookingForm</div>
+    <div>
+      <GuestHeader />
+    </div>
   )
 }
 
