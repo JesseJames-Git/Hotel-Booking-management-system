@@ -170,7 +170,7 @@ class Bookings(db.Model, SerializerMixin):
     guest_id = db.Column(db.Integer, db.ForeignKey('guests.id'))
     check_in_date = db.Column(db.DateTime, nullable=False)
     check_out_date = db.Column(db.DateTime, nullable=False)
-    status = db.Column(db.String, default='No Reservation') 
+    status = db.Column(db.String, default='Pending') 
 
     guest = db.relationship('Guests', back_populates='bookings')
     booked_rooms = db.relationship('BookedRoom', back_populates='booking',

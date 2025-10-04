@@ -215,9 +215,18 @@ class GuestBookings(Resource):
 
 class BookingById(Resource):
     def patch(self, booking_id):
-        guest_id = session.get("guest_id")
 
-        booking = Bookings.query.filter_by(id=booking_id, guest_id=guest_id).first()
+        guest_id = session.get("guest_id")
+        admin_id = session.get("admin_id") or 5
+
+        if guest_id:
+            booking = Bookings.query.filter_by(id=booking_id, guest_id=guest_id).first()
+
+        elif admin_id:
+            booking = Bookings.query.filter_by(id=booking_id).first()
+        else:
+            return {"error": "Unauthorized"}, 403
+
         if not booking:
             return {"error": "Booking not found or unauthorized"}, 404
 
@@ -230,13 +239,37 @@ class BookingById(Resource):
                         setattr(booking, key, datetime.fromisoformat(value))
                     except ValueError:
                         return {"error": f"Invalid date format for {key}"}, 400
+                elif key == "status":
+                    if value not in ["Pending", "Denied", "Confirmed"]:
+                        return {"error": "Invalid status value"}, 400
+                    setattr(booking, key, value)
                 else:
                     setattr(booking, key, value)
 
         db.session.commit()
-        return make_response(jsonify(booking.to_dict(only=(
-            'id','rooms.hotel.name', 'rooms.room_name','rooms.room_type.type_name','check_in_date','rooms.price_per_night','check_out_date','status',)
-        )), 200)
+
+        return make_response(
+            jsonify(
+                booking.to_dict(
+                    only=(
+                        "id",
+                        "status",
+                        "check_in_date",
+                        "check_out_date",
+                        "rooms.room_name",
+                        "rooms.room_type.type_name",
+                        "rooms.price_per_night",
+                        "rooms.hotel.name",
+                        "guest.id",
+                        "guest.name",
+                        "guest.email",
+                    )
+                )
+            ),
+            200,
+        )
+
+
 
     def delete(self, booking_id):
         guest_id = session.get("guest_id") 
@@ -291,7 +324,7 @@ class BookingByHotelId(Resource):
                         "id": br.room.id,
                         "room_name": br.room.room_name,
                         "price_per_night": float(br.room.price_per_night),
-                        "is_available": br.room.is_available
+                        "is_available": str(br.room.is_available)
                     }
                     for br in b.booked_rooms
                 ]

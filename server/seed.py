@@ -150,10 +150,10 @@ if __name__ == '__main__':
         # Bookings
         bookings = [
             Bookings(
-                guest_id=randint(1, 25),
+                guest_id=randint(1, 100),
                 check_in_date=check_in_date,
                 check_out_date=check_out_date,
-                status=rc(['Reserved', 'Pending', 'No Reservation'])
+                status=rc(['Confirmed', 'Pending', 'Denied'])
             )
             for _ in range(20)
         ]
