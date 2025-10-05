@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 
 const Hotel = () => {
   const [hotel, setHotel] = useState(null);
+  const [amenities, setAmenities] = useState([])
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -12,6 +13,7 @@ const Hotel = () => {
         setLoading(false);
       });
   }, []);
+
 
   if (loading) return <p>Loading...</p>;
   if (!hotel || hotel.message) return <p>No hotel found for this admin.</p>;

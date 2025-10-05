@@ -1,7 +1,7 @@
 from flask import request, jsonify, make_response
 from sqlalchemy.orm import joinedload
 from config import app, db, api, Resource, session
-from models import Hotels, Guests, Rooms, Bookings, BookedRoom, Admins
+from models import Hotels, Guests, Rooms, Bookings, BookedRoom, Admins,Amenities, HotelAmenities
 from datetime import datetime
 
 def is_room_available(room_id: int, check_in: datetime, check_out: datetime) -> bool:
@@ -461,7 +461,46 @@ class AdminsList(Resource):
         
         return new_admin.to_dict(), 201
     
-        
+
+# Amenities Resource
+class HotelAmenitiesResource(Resource):
+    def get(self, hotel_id):
+        hotel = Hotels.query.get(hotel_id)
+        if not hotel:
+            return jsonify({"error": "Hotel not found"}), 404
+
+        return jsonify([ha.amenity.to_dict() for ha in hotel.hotel_amenities])
+
+
+    def post(self, hotel_id):
+        data = request.get_json()
+        hotel = Hotels.query.get(hotel_id)
+        if not hotel:
+            return jsonify({"error": "Hotel not found"}), 404
+
+        name = data.get("name")
+        description = data.get("description")
+
+        if not name or not description:
+            return jsonify({"error": "Missing fields"}), 400
+
+        new_amenity = Amenities(name=name, description=description)
+        db.session.add(new_amenity)
+        db.session.commit()
+
+        link = HotelAmenities(
+            hotel_id=hotel.id, amenity_id=new_amenity.id
+        )
+        db.session.add(link)
+        db.session.commit()
+
+        return jsonify({
+            "message": "Amenity created and linked successfully",
+            "amenity": new_amenity.to_dict()
+        }), 201
+
+    
+    
 # -----------------------------------Routes--------------------------------------
 
 
@@ -495,6 +534,9 @@ api.add_resource(BookingListResource, "/bookings")
 api.add_resource(GuestBookings, "/my_bookings")
 api.add_resource(BookingById, "/bookings/<int:booking_id>")
 api.add_resource(BookingByHotelId, "/hotels/<int:hotel_id>/bookings")
+
+# HotelAmenities
+api.add_resource(HotelAmenitiesResource, "/hotel/<int:hotel_id>/amenities")
 
 
 

@@ -9,12 +9,12 @@ import {
 import Reservations from "./Reservations";
 import Hotel from "./Hotel";
 import AddHotel from "./AddHotel";
+import AddAmenities from "./AddAmenities";
 
 function App() {
   const [hotel, setHotel] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch the logged-in admin's hotel
   useEffect(() => {
     fetch("/my_hotel")
       .then((r) => r.json())
@@ -40,11 +40,12 @@ function App() {
           <Link to="/hotel" style={{ marginRight: "1em" }}>
             My Hotel
           </Link>
-          <Link to="/hotels/1/reservations">Reservations</Link>
+          <Link to="/hotels/1/reservations" style={{ marginRight: "1em" }}>Reservations</Link>
+          <Link to="/admin/add_amenities"> Add Amenities</Link>
         </nav>
 
         <Switch>
-          {/* Show AddHotel if admin doesn't have one */}
+
           <Route path="/hotel">
             {hotel ? (
               <Hotel hotel={hotel} />
@@ -53,6 +54,7 @@ function App() {
             )}
           </Route>
 
+          <Route path="/admin/add_amenities" component={AddAmenities} />
           <Route path="/hotels/:hotelId/reservations" component={Reservations} />
         </Switch>
       </div>

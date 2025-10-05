@@ -45,7 +45,7 @@ const Reservations = () => {
                 <li key={r.id}>
                   <p>Room Name: {r.room_name}</p>
                   <p>Price per Night: {r.price_per_night}</p>
-                  <p>Availability: {r.is_available ? "Yes" : "No"}</p>
+                  <p>Availability: {r.is_available}</p>
                 </li>
               ))}
             </ul>

@@ -1,18 +1,19 @@
 import React from "react";
 import { useFormik } from "formik";
 import * as yup from "yup";
+import "../styling/AddHotel.css"
 
 const AddHotel = ({ onHotelAdded }) => {
   const schema = yup.object().shape({
-    name: yup.string().max(25).required("Hotel name required"),
-    email: yup.string().email("Invalid email").required(),
-    phone: yup.string().max(17).required(),
-    city: yup.string().required(),
-    country: yup.string().required(),
-    address: yup.string().required(),
+    name: yup.string().max(25).required("This field is required"),
+    email: yup.string().email("Invalid email").required("This field is required"),
+    phone: yup.string().max(17).required("This field is required"),
+    city: yup.string().required("This field is required"),
+    country: yup.string().required("This field is required"),
+    address: yup.string().required("This field is required"),
   })
 
-  const { values, handleChange, handleBlur, handleSubmit, resetForm } = useFormik({
+  const { values, errors, touched, handleChange, handleBlur, handleSubmit, resetForm } = useFormik({
     initialValues: {
       name: "",
       email: "",
@@ -46,7 +47,6 @@ const AddHotel = ({ onHotelAdded }) => {
       })
       .join(' ')
   }
-
   
   return (
     <div>
@@ -63,7 +63,9 @@ const AddHotel = ({ onHotelAdded }) => {
               onChange={handleChange}
               onBlur={handleBlur}
               placeholder={`Enter ${toTitleCase(field)}`}
+              className={errors[field] && touched[field] ? "input-errors": ""}
             />
+            {errors[field] && touched[field] && <p className="error-msg">{errors[field]}</p>}
             <br/>
           </div>
         ))}
