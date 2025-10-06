@@ -4,7 +4,6 @@ import {
   Route,
   Switch,
   Link,
-  useHistory,
 } from "react-router-dom";
 import Reservations from "./Reservations";
 import Hotel from "./Hotel";

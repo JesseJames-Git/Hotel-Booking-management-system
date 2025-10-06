@@ -1,0 +1,105 @@
+/* Container */
+.hotel-container {
+  max-width: 800px;
+  margin: 40px auto;
+  background-color: #fff;
+  border-radius: 16px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  padding: 30px 40px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Header */
+.hotel-header {
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.hotel-header h2 {
+  font-size: 28px;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #777;
+  font-style: italic;
+}
+
+/* Details Grid */
+.hotel-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 20px;
+  margin-bottom: 30px;
+}
+
+.hotel-details p {
+  color: #444;
+  font-size: 15px;
+}
+
+.hotel-details .address {
+  grid-column: span 2;
+}
+
+/* Amenities Section */
+.amenities-section h3 {
+  font-size: 22px;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.amenities-list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 15px;
+  padding: 0;
+  margin: 0;
+}
+
+.amenity-card {
+  background-color: #fafafa;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 15px 20px;
+  transition: all 0.3s ease;
+}
+
+.amenity-card:hover {
+  background-color: #f5f5f5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.amenity-name {
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 6px;
+}
+
+.amenity-description {
+  color: #555;
+  font-size: 14px;
+}
+
+/* Empty States and Errors */
+.no-amenities {
+  color: #777;
+  font-style: italic;
+  font-size: 14px;
+}
+
+.error-box {
+  max-width: 600px;
+  margin: 40px auto;
+  background-color: #ffecec;
+  color: #c00;
+  border: 1px solid #f5b5b5;
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  font-weight: 500;
+}
