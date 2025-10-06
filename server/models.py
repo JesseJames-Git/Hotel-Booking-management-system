@@ -48,12 +48,12 @@ class Hotels(db.Model, SerializerMixin, TimestampMixin):
     __tablename__ = 'hotels'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, nullable=False)
-    address = db.Column(db.String, nullable=False)
+    name = db.Column(db.String, nullable=False, unique=True)
+    address = db.Column(db.String, nullable=False, unique=True)
     city = db.Column(db.String)
     country = db.Column(db.String, nullable=False)
-    email = db.Column(db.String, nullable=False)
-    phone = db.Column(db.String, nullable=False)
+    email = db.Column(db.String, nullable=False, unique=True)
+    phone = db.Column(db.String, nullable=False, unique=True)
     admin_id = db.Column(db.Integer,  db.ForeignKey('admins.id'))
 
     # relationships
@@ -110,6 +110,10 @@ class Rooms(db.Model, SerializerMixin):
     room_name = db.Column(db.String, nullable=False)
     price_per_night = db.Column(db.Numeric(6, 2), nullable=False)
     is_available = db.Column(db.Boolean, default=True)
+    total_rooms = db.Column(db.Integer, default=1)
+    available_rooms = db.Column(db.Integer, default=1)
+    max_per_booking = db.Column(db.Integer, default=1)
+
 
     # relationships
     hotel = db.relationship('Hotels', back_populates='rooms')
@@ -237,7 +241,14 @@ class HotelAmenities(db.Model, SerializerMixin):
     hotel_id = db.Column(db.Integer, db.ForeignKey('hotels.id'))
     amenity_id = db.Column(db.Integer, db.ForeignKey('amenities.id'))
 
+    # constraints
+    __table_args__ = (
+        db.UniqueConstraint('hotel_id', 'amenity_id', name='unique_hotel_amenity'),
+    )
+
+    # relationships
     hotel = db.relationship('Hotels', back_populates='hotel_amenities')
     amenity = db.relationship('Amenities', back_populates='hotel_amenities')
 
+    # serialize_rules
     serialize_rules = ('-amenity.hotel_amenities', '-hotel.hotel_amenities',)

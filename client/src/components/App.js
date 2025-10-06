@@ -10,13 +10,15 @@ import Reservations from "./Reservations";
 import Hotel from "./Hotel";
 import AddHotel from "./AddHotel";
 import AddAmenities from "./AddAmenities";
+import ViewRooms from "./ViewRooms";
+import AddRoom from "./AddRoom"
 
 function App() {
   const [hotel, setHotel] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/my_hotel")
+    fetch("/admin/hotel")
       .then((r) => r.json())
       .then((data) => {
         if (data && !data.message) {
@@ -41,7 +43,8 @@ function App() {
             My Hotel
           </Link>
           <Link to="/hotels/1/reservations" style={{ marginRight: "1em" }}>Reservations</Link>
-          <Link to="/admin/add_amenities"> Add Amenities</Link>
+          <Link to="/admin/add_amenities" style={{ marginRight: "1em" }}> Add Amenities</Link>
+          <Link to="/admin/hotel/rooms" style={{ marginRight: "1em" }}>View Rooms</Link>
         </nav>
 
         <Switch>
@@ -54,8 +57,16 @@ function App() {
             )}
           </Route>
 
-          <Route path="/admin/add_amenities" component={AddAmenities} />
+          <Route path="/admin/add_amenities">
+            <AddAmenities hotel={hotel}/>
+          </Route>
           <Route path="/hotels/:hotelId/reservations" component={Reservations} />
+
+          <Route path="/admin/hotel/rooms">
+            <ViewRooms hotel={hotel}/>
+          </Route>
+          <AddRoom hotel={hotel}/>
+
         </Switch>
       </div>
     </Router>

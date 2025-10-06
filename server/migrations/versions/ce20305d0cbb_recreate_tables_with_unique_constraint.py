@@ -1,8 +1,8 @@
-"""Make initial Schema
+"""recreate tables with unique constraint
 
-Revision ID: 9b5389c0a044
+Revision ID: ce20305d0cbb
 Revises: 
-Create Date: 2025-10-05 02:01:14.252945
+Create Date: 2025-10-05 23:40:06.810292
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '9b5389c0a044'
+revision = 'ce20305d0cbb'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -22,10 +22,8 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('_password_hash', sa.String(), nullable=False),
-    sa.Column('hotel_id', sa.Integer(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.ForeignKeyConstraint(['hotel_id'], ['hotels.id'], name=op.f('fk_admins_hotel_id_hotels')),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('name')
     )
@@ -45,20 +43,6 @@ def upgrade():
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email')
     )
-    op.create_table('hotels',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('name', sa.String(), nullable=False),
-    sa.Column('address', sa.String(), nullable=False),
-    sa.Column('city', sa.String(), nullable=True),
-    sa.Column('country', sa.String(), nullable=False),
-    sa.Column('email', sa.String(), nullable=False),
-    sa.Column('phone', sa.String(), nullable=False),
-    sa.Column('admin_id', sa.Integer(), nullable=True),
-    sa.Column('created_at', sa.DateTime(), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.ForeignKeyConstraint(['admin_id'], ['admins.id'], name=op.f('fk_hotels_admin_id_admins')),
-    sa.PrimaryKeyConstraint('id')
-    )
     op.create_table('room_types',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('type_name', sa.String(), nullable=False),
@@ -74,13 +58,28 @@ def upgrade():
     sa.ForeignKeyConstraint(['guest_id'], ['guests.id'], name=op.f('fk_bookings_guest_id_guests')),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('hotels',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('name', sa.String(), nullable=False),
+    sa.Column('address', sa.String(), nullable=False),
+    sa.Column('city', sa.String(), nullable=True),
+    sa.Column('country', sa.String(), nullable=False),
+    sa.Column('email', sa.String(), nullable=False),
+    sa.Column('phone', sa.String(), nullable=False),
+    sa.Column('admin_id', sa.Integer(), nullable=True),
+    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
+    sa.ForeignKeyConstraint(['admin_id'], ['admins.id'], name=op.f('fk_hotels_admin_id_admins')),
+    sa.PrimaryKeyConstraint('id')
+    )
     op.create_table('hotel_amenities',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('hotel_id', sa.Integer(), nullable=True),
     sa.Column('amenity_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['amenity_id'], ['amenities.id'], name=op.f('fk_hotel_amenities_amenity_id_amenities')),
     sa.ForeignKeyConstraint(['hotel_id'], ['hotels.id'], name=op.f('fk_hotel_amenities_hotel_id_hotels')),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('hotel_id', 'amenity_id', name='unique_hotel_amenity')
     )
     op.create_table('rooms',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -89,6 +88,9 @@ def upgrade():
     sa.Column('room_name', sa.String(), nullable=False),
     sa.Column('price_per_night', sa.Numeric(precision=6, scale=2), nullable=False),
     sa.Column('is_available', sa.Boolean(), nullable=True),
+    sa.Column('total_rooms', sa.Integer(), nullable=True),
+    sa.Column('available_rooms', sa.Integer(), nullable=True),
+    sa.Column('max_per_booking', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['hotel_id'], ['hotels.id'], name=op.f('fk_rooms_hotel_id_hotels')),
     sa.ForeignKeyConstraint(['room_type_id'], ['room_types.id'], name=op.f('fk_rooms_room_type_id_room_types')),
     sa.PrimaryKeyConstraint('id')
@@ -108,9 +110,9 @@ def downgrade():
     op.drop_table('booked_rooms')
     op.drop_table('rooms')
     op.drop_table('hotel_amenities')
+    op.drop_table('hotels')
     op.drop_table('bookings')
     op.drop_table('room_types')
-    op.drop_table('hotels')
     op.drop_table('guests')
     op.drop_table('amenities')
     op.drop_table('admins')
