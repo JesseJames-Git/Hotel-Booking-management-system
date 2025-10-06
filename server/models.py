@@ -48,23 +48,31 @@ class Hotels(db.Model, SerializerMixin, TimestampMixin):
     __tablename__ = 'hotels'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, nullable=False)
-    address = db.Column(db.String, nullable=False)
+    name = db.Column(db.String, nullable=False, unique=True)
+    address = db.Column(db.String, nullable=False, unique=True)
     city = db.Column(db.String)
     country = db.Column(db.String, nullable=False)
-    email = db.Column(db.String, nullable=False)
-    phone = db.Column(db.String, nullable=False)
+    email = db.Column(db.String, nullable=False, unique=True)
+    phone = db.Column(db.String, nullable=False, unique=True)
+    admin_id = db.Column(db.Integer,  db.ForeignKey('admins.id'))
 
     # relationships
-    admin = db.relationship('Admins', back_populates='hotel', uselist=False,
-                            cascade="all, delete-orphan")
+    admin = db.relationship('Admins', back_populates='hotel')
     rooms = db.relationship('Rooms', back_populates='hotel',
                             cascade="all, delete-orphan")
     hotel_amenities = db.relationship('HotelAmenities', back_populates='hotel',
                                       cascade="all, delete-orphan")
+    bookings = db.relationship(
+        "Bookings",
+        secondary="booked_rooms",
+        primaryjoin="Hotels.id==Rooms.hotel_id",
+        secondaryjoin="Bookings.id==BookedRoom.booking_id",
+        viewonly=True,
+        overlaps="rooms,booked_rooms"
+    )
 
     # serialize_rules
-    serialize_rules = ('-admin.hotel', '-rooms.hotel', '-hotel_amenities.hotel',)
+    serialize_rules = ('-admin.hotel', '-rooms.hotel', '-hotel_amenities.hotel','-bookings.rooms.hotel','-bookings.guest.booking',)
 
 
 class Admins(db.Model, SerializerMixin, TimestampMixin):
@@ -73,10 +81,10 @@ class Admins(db.Model, SerializerMixin, TimestampMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, unique=True,nullable=False)
     _password_hash = db.Column(db.String, nullable=False)
-    hotel_id = db.Column(db.Integer, db.ForeignKey('hotels.id'))
 
     # relationships
-    hotel = db.relationship('Hotels', back_populates='admin')
+    hotel = db.relationship('Hotels', back_populates='admin', uselist=False,
+                            cascade="all, delete-orphan")
 
     @hybrid_property
     def password_hash(self):
@@ -162,7 +170,7 @@ class Bookings(db.Model, SerializerMixin):
     guest_id = db.Column(db.Integer, db.ForeignKey('guests.id'))
     check_in_date = db.Column(db.DateTime, nullable=False)
     check_out_date = db.Column(db.DateTime, nullable=False)
-    status = db.Column(db.String, default='No Reservation') 
+    status = db.Column(db.String, default='Pending') 
 
     guest = db.relationship('Guests', back_populates='bookings')
     booked_rooms = db.relationship('BookedRoom', back_populates='booking',
@@ -229,7 +237,14 @@ class HotelAmenities(db.Model, SerializerMixin):
     hotel_id = db.Column(db.Integer, db.ForeignKey('hotels.id'))
     amenity_id = db.Column(db.Integer, db.ForeignKey('amenities.id'))
 
+    # constraints
+    __table_args__ = (
+        db.UniqueConstraint('hotel_id', 'amenity_id', name='unique_hotel_amenity'),
+    )
+
+    # relationships
     hotel = db.relationship('Hotels', back_populates='hotel_amenities')
     amenity = db.relationship('Amenities', back_populates='hotel_amenities')
 
+    # serialize_rules
     serialize_rules = ('-amenity.hotel_amenities', '-hotel.hotel_amenities',)

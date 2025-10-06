@@ -5,7 +5,7 @@ import os
 from flask import Flask, session
 from flask_cors import CORS
 from flask_migrate import Migrate
-from flask_restful import Api, Resource
+from flask_restful import Api, Resource, reqparse
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import MetaData, event
 from datetime import datetime, timedelta

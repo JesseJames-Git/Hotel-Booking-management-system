@@ -1,6 +1,7 @@
 from flask import request, jsonify, make_response
-from config import app, db, api, Resource, session
-from models import Hotels, Guests, Rooms, Bookings, BookedRoom, Admins
+from sqlalchemy.orm import joinedload
+from config import app, db, api, Resource, reqparse, session
+from models import Hotels, Guests, Rooms, Bookings, BookedRoom, Admins, Amenities, HotelAmenities, RoomTypes
 from datetime import datetime
 
 def is_room_available(room_id: int, check_in: datetime, check_out: datetime) -> bool:
@@ -99,36 +100,88 @@ class RoomsList(Resource):
 
     def post(self):
         data = request.get_json()
+
+        required = ["room_name", "price_per_night", "hotel_id", "room_type_id"]
+        if not all(k in data for k in required):
+            return {"error": "Missing required fields"}, 400
+
         room = Rooms(
-            number=data.get("number"),
-            type=data.get("type"),
-            price=data.get("price"),
-            is_available=data.get("is_available", True),
-            hotel_id=data.get("hotel_id"),
+            room_name=data["room_name"],
+            price_per_night=data["price_per_night"],
+            hotel_id=data["hotel_id"],
+            room_type_id=data["room_type_id"],
+            is_available=data.get("is_available", True)
         )
+
         db.session.add(room)
         db.session.commit()
-        return room.to_dict(), 201
-    
+
+        return room.to_dict(only=("room_name","price_per_night", "room_type_id", "is_available")), 201
+
 class RoomsPerHotel(Resource):
     def get(self, hotel_id):
-        return make_response(jsonify([r.to_dict(only=("id", "room_name", "room_type.type_name", "price_per_night")) for r in Rooms.query.filter(Rooms.hotel_id==hotel_id).all()]), 200)
+        return make_response(jsonify([r.to_dict(only=(
+            "id", 
+            "room_name", 
+            "room_type.type_name", 
+            "hotel.id",
+            "is_available",
+            "price_per_night",)) for r in Rooms.query.filter(Rooms.hotel_id==hotel_id).all()]), 200)
 
 class SingleRoom(Resource):
-    def patch(self, id):    
-        room = Rooms.query.get_or_404(id)
-        data = request.get_json()
-        for key, value in data.items():
-            if hasattr(room, key):
-                setattr(room, key, value)
-        db.session.commit()
-        return room.to_dict()
+    def put(self, id):
+            parser = reqparse.RequestParser()
+            parser.add_argument('is_available', type=bool, required=False)
+            parser.add_argument('total_rooms', type=int, required=False)
+            parser.add_argument('available_rooms', type=int, required=False)
+            parser.add_argument('max_per_booking', type=int, required=False)
+            data = parser.parse_args()
+
+            room = Rooms.query.get(id)
+            if not room:
+                return {"error": "Room not found"}, 404
+
+
+            if data["is_available"] is not None:
+                room.is_available = data["is_available"]
+            if data["total_rooms"] is not None:
+                room.total_rooms = data["total_rooms"]
+            if data["available_rooms"] is not None:
+                room.available_rooms = data["available_rooms"]
+            if data["max_per_booking"] is not None:
+                room.max_per_booking = data["max_per_booking"]
+
+
+            if room.available_rooms > room.total_rooms:
+                return {"error": "Available rooms cannot exceed total rooms"}, 400
+
+            if room.max_per_booking > room.available_rooms:
+                return {"error": "Max per booking cannot exceed available rooms"}, 400
+
+            db.session.commit()
+
+            return {
+                "message": "Room updated successfully",
+                "room": {
+                    "id": room.id,
+                    "room_name": room.room_name,
+                    "is_available": room.is_available,
+                    "total_rooms": room.total_rooms,
+                    "available_rooms": room.available_rooms,
+                    "max_per_booking": room.max_per_booking,
+                }
+            }, 200
 
     def delete(self, id):
         room = Rooms.query.get_or_404(id)
         db.session.delete(room)
         db.session.commit()
         return make_response({"message": f"Room {id} deleted"}, 200)
+    
+# Room_types
+class RoomTypesResource(Resource):
+    def get(self):
+        return make_response(jsonify([r.to_dict(only=("id", "type_name", "description",)) for r in RoomTypes.query.all()]), 200)
     
 class AvailableRoomsPerHotel(Resource):
     def get(self, hotel_id):
@@ -212,11 +265,19 @@ class GuestBookings(Resource):
             'id','rooms.hotel.name', 'rooms.room_name','rooms.room_type.type_name','check_in_date','check_out_date','status',)
         ), 201)
 
+
 class BookingById(Resource):
     def patch(self, booking_id):
         guest_id = session.get("guest_id")
+        admin_id = session.get("admin_id") or 7
 
-        booking = Bookings.query.filter_by(id=booking_id, guest_id=guest_id).first()
+        if guest_id:
+            booking = Bookings.query.filter_by(id=booking_id, guest_id=guest_id).first()
+        elif admin_id:
+            booking = Bookings.query.filter_by(id=booking_id).first()
+        else:
+            return {"error": "Unauthorized"}, 403
+
         if not booking:
             return {"error": "Booking not found or unauthorized"}, 404
 
@@ -229,13 +290,38 @@ class BookingById(Resource):
                         setattr(booking, key, datetime.fromisoformat(value))
                     except ValueError:
                         return {"error": f"Invalid date format for {key}"}, 400
+                elif key == "status":
+                    if value not in ["Pending", "Denied", "Confirmed"]:
+                        return {"error": "Invalid status value"}, 400
+                    setattr(booking, key, value)
                 else:
                     setattr(booking, key, value)
 
         db.session.commit()
-        return make_response(jsonify(booking.to_dict(only=(
-            'id','rooms.hotel.name', 'rooms.room_name','rooms.room_type.type_name','check_in_date','rooms.price_per_night','check_out_date','status',)
-        )), 200)
+
+        result = {
+            "id": booking.id,
+            "status": booking.status,
+            "check_in_date": booking.check_in_date.isoformat(),
+            "check_out_date": booking.check_out_date.isoformat(),
+            "guest": {
+                "id": booking.guest.id,
+                "name": booking.guest.name,
+                "email": booking.guest.email
+            } if booking.guest else None,
+            "rooms": [
+                {
+                    "id": br.room.id,
+                    "room_name": br.room.room_name,
+                    "price_per_night": float(br.room.price_per_night),
+                    "is_available": str(br.room.is_available),
+                }
+                for br in booking.booked_rooms
+            ]
+        }
+
+        return make_response(jsonify(result), 200)
+
 
     def delete(self, booking_id):
         guest_id = session.get("guest_id") 
@@ -259,6 +345,50 @@ class BookingById(Resource):
         return make_response(jsonify(data), 200)
 
 
+class BookingByHotelId(Resource):
+    def get(self, hotel_id):
+        bookings = (
+            db.session.query(Bookings)
+            .join(BookedRoom)
+            .join(Rooms)
+            .filter(Rooms.hotel_id == hotel_id)
+            .options(
+                joinedload(Bookings.guest),
+                joinedload(Bookings.booked_rooms).joinedload(BookedRoom.room)
+            )
+            .all()
+        )
+
+        result = []
+        for b in bookings:
+            result.append({
+                "id": b.id,
+                "check_in_date": b.check_in_date.isoformat(),
+                "check_out_date": b.check_out_date.isoformat(),
+                "status": b.status,
+                "guest": (
+                    {
+                        "id": b.guest.id,
+                        "name": b.guest.name,
+                        "email": b.guest.email,
+                    }
+                    if b.guest
+                    else None
+                ),
+                "rooms": [
+                    {
+                        "id": br.room.id,
+                        "room_name": br.room.room_name,
+                        "price_per_night": float(br.room.price_per_night),
+                        "is_available": str(br.room.is_available),
+                    }
+                    for br in b.booked_rooms
+                ],
+            })
+
+        return make_response(jsonify(result), 200)
+
+
 # Hotel Resources
 class HotelsList(Resource):
     def get(self):
@@ -273,6 +403,10 @@ class HotelsList(Resource):
         ))for h in Hotels.query.all()]
 
     def post(self):
+        admin_id = session.get("admin_id")
+        if not admin_id:
+            return {"error": "Unauthorized"}, 401
+
         data = request.get_json()
         hotel = Hotels(
             name=data.get("name"),
@@ -281,6 +415,7 @@ class HotelsList(Resource):
             country=data.get("country"),
             phone=data.get("phone"),
             email=data.get("email"),
+            admin_id=admin_id
         )
         db.session.add(hotel)
         db.session.commit()
@@ -301,7 +436,7 @@ class SingleHotel(Resource):
             "rooms.room_type",
             "rooms.price_per_night",
             "rooms.is_available",
-            "hotel_amenities"
+            "hotel_amenities",
         )), 200)
 
     def put(self, id):
@@ -317,6 +452,21 @@ class SingleHotel(Resource):
         db.session.delete(hotel)
         db.session.commit()
         return {"message": f"Hotel {id} deleted"}, 200
+    
+class AdminHotel(Resource):
+    def get(self):
+        admin_id = session.get("admin_id") or 7
+
+        if not admin_id:
+            return {"error": "Unauthorized"}, 401
+        
+        my_hotel = Hotels.query.filter_by(admin_id=admin_id).first()
+
+        return make_response(my_hotel.to_dict(only=(
+            "id", "name", "city", "country", "email", "address",
+            "phone", "rooms.id","rooms.room_name","rooms.is_available","rooms.price_per_night","rooms.room_type",
+        )), 200)
+
     
         
 # Admin Session Management
@@ -367,7 +517,57 @@ class AdminsList(Resource):
         
         return new_admin.to_dict(), 201
     
-        
+
+# Amenities Resource
+class HotelAmenitiesResource(Resource):
+    def get(self, hotel_id):
+        hotel = Hotels.query.get(hotel_id)
+        if not hotel:
+            return {"error": "Hotel not found"}, 404
+
+        amenities = [
+            ha.amenity.to_dict(only=("id", "name", "description"))
+            for ha in hotel.hotel_amenities
+        ]
+        return amenities, 200
+
+
+    def post(self, hotel_id):
+        data = request.get_json()
+        hotel = Hotels.query.get(hotel_id)
+        if not hotel:
+            return {"error": "Hotel not found"}, 404
+
+        name = data.get("name")
+        description = data.get("description")
+
+        if not name or not description:
+            return {"error": "Missing fields"}, 400
+
+        amenity = Amenities.query.filter_by(name=name).first()
+        if not amenity:
+            amenity = Amenities(name=name, description=description)
+            db.session.add(amenity)
+            db.session.commit()
+
+        existing_link = HotelAmenities.query.filter_by(
+            hotel_id=hotel.id, amenity_id=amenity.id
+        ).first()
+        if existing_link:
+            return {"error": f"Amenity '{name}' already exists for this hotel"}, 409
+
+        link = HotelAmenities(hotel_id=hotel.id, amenity_id=amenity.id)
+        db.session.add(link)
+        db.session.commit()
+
+        return {
+            "message": "Amenity created and linked successfully",
+            "amenity": amenity.to_dict(only=("id", "name", "description")),
+        }, 201
+
+
+    
+    
 # -----------------------------------Routes--------------------------------------
 
 
@@ -376,6 +576,7 @@ api.add_resource(AdminsList, "/admins")
 api.add_resource(AdminLogin, "/admin/login")
 api.add_resource(CheckAdminSession, "/admin")
 api.add_resource(AdminLogout, "/admin/logout")
+api.add_resource(AdminHotel, "/admin/hotel")
 
 # Hotels
 api.add_resource(HotelsList, "/hotels")
@@ -395,10 +596,17 @@ api.add_resource(SingleRoom, "/rooms/<int:id>")
 api.add_resource(AvailableRoomsPerHotel, "/rooms/<int:hotel_id>/available")
 api.add_resource(RoomsPerHotel, "/hotels/<int:hotel_id>/rooms")
 
+# RoomTypes
+api.add_resource(RoomTypesResource, "/room_types")
+
 # Bookings
 api.add_resource(BookingListResource, "/bookings")
 api.add_resource(GuestBookings, "/my_bookings")
 api.add_resource(BookingById, "/bookings/<int:booking_id>")
+api.add_resource(BookingByHotelId, "/hotels/<int:hotel_id>/bookings")
+
+# HotelAmenities
+api.add_resource(HotelAmenitiesResource, "/hotel/<int:hotel_id>/amenities")
 
 
 
