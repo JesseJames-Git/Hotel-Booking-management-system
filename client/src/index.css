@@ -4,6 +4,13 @@
   --link: #61dafb;
   --text: hsla(0, 0%, 100%, 0.88);
 }
+*{
+  margin: 0;
+  padding: 0;
+}
+body{
+  background: linear-gradient(to bottom right, #eef2ff, #e0e7ff);
+}
 
 *{
   margin: 0;

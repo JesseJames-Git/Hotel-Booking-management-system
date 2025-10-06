@@ -1,0 +1,79 @@
+/* Navbar container */
+.navbar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: linear-gradient(to bottom right, #6e727dc4, #a8acb79f);
+  padding: 12px 25px;
+  border-bottom: 2px solid #eaeaea;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  height: 160px;
+  max-height: 160px;
+}
+
+/* Brand / title */
+.brand {
+  margin-top: 10px;
+  margin-bottom: 42px;
+  color: #2a3951;
+  font-size: 50px;
+  font-weight: bold;
+}
+
+/* Links container */
+.nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 15px;
+}
+.nav-links span{
+    margin-right: 200px;
+}
+
+/* General link styles */
+.link {
+  text-decoration: none;
+  padding-right: 100px;
+  color: #1e293b;
+  font-weight: 500;
+  font-size: 25px;
+  transition: color 0.3s ease;
+}
+.link:hover {
+  color: #444133;
+}
+
+/* Welcome message */
+.welcome {
+  margin-right: 10px;
+  margin-left: -50px;
+  position: static;
+  font-weight: 600;
+  font-style: italic;
+  font-size: 25px;
+}
+
+/* Buttons */
+.btn {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s ease;
+}
+.active-link {
+  background: rgba(23, 23, 23, 0.13);
+  font-weight: bold;
+}
+
+/* Logout button */
+.logout-btn {
+  background: #f44336;
+  color: white;
+}
+.logout-btn:hover {
+  background: #d32f2f;
+}

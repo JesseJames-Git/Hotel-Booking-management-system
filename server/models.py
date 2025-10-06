@@ -110,10 +110,6 @@ class Rooms(db.Model, SerializerMixin):
     room_name = db.Column(db.String, nullable=False)
     price_per_night = db.Column(db.Numeric(6, 2), nullable=False)
     is_available = db.Column(db.Boolean, default=True)
-    total_rooms = db.Column(db.Integer, default=1)
-    available_rooms = db.Column(db.Integer, default=1)
-    max_per_booking = db.Column(db.Integer, default=1)
-
 
     # relationships
     hotel = db.relationship('Hotels', back_populates='rooms')

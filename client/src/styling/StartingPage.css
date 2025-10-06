@@ -1,0 +1,102 @@
+/* Container */
+.starting-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  text-align: center;
+  padding: 2rem;
+  background: linear-gradient(to bottom right, #eef2ff, #e0e7ff);
+}
+
+/* Hero Section */
+.hero-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #1e293b;
+  margin-bottom: 1rem;
+}
+
+.hero-subtext {
+  font-size: 1.2rem;
+  color: #475569;
+  max-width: 600px;
+  margin-bottom: 1.5rem;
+}
+
+.highlight {
+  font-weight: 600;
+  color: #334155;
+}
+
+.highlight-primary {
+  font-weight: 600;
+  color: #4f46e5;
+}
+
+/* CTA Button */
+.cta-btn {
+  background: #4f46e5;
+  color: white;
+  padding: 0.8rem 1.5rem;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background 0.3s ease;
+}
+
+.cta-btn:hover {
+  background: #4338ca;
+}
+
+/* Features Section */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-top: 3rem;
+  width: 100%;
+  max-width: 1000px;
+}
+
+.feature-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  transition: transform 0.3s ease;
+}
+
+.feature-card h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #1e293b;
+}
+
+.feature-card p {
+  color: #475569;
+  font-size: 0.95rem;
+}
+
+/* Guest Portal Logout */
+.logout-wrapper {
+  padding: 10px;
+  text-align: right;
+}
+
+.logout-btn {
+  padding: 0.5rem 1rem;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  background: #dc2626;
+}
