@@ -1,51 +1,145 @@
 #!/usr/bin/env python3
 
-# Standard library imports
 from random import randint, choice as rc
-
-# Remote library imports
 from faker import Faker
 
-# Local imports
 from app import app
+from config import db, timedelta
 from models import (
-    db,
-    Guests, 
-    HotelAmenities, 
-    Hotels, 
-    Admins, 
-    Bookings, 
-    Amenities, 
-    Rooms, 
-    RoomTypes, 
-    datetime, 
-    timedelta
+    Guests,
+    Admins,
+    Hotels,
+    Rooms,
+    RoomTypes,
+    Bookings,
+    BookedRoom,
+    Amenities,
+    HotelAmenities,
+    datetime,
 )
 
-if __name__ == '__main__':
-    fake = Faker()
-    with app.app_context():
+fake = Faker()
 
-        Guests.query.delete()
-        HotelAmenities.query.delete()
-        Hotels.query.delete()
-        Admins.query.delete()
+if __name__ == "__main__":
+    with app.app_context():
+        print("🚿 Clearing old data...")
+
+        # Delete in dependency order
+        BookedRoom.query.delete()
         Bookings.query.delete()
-        Amenities.query.delete()
+        HotelAmenities.query.delete()
         Rooms.query.delete()
         RoomTypes.query.delete()
+        Hotels.query.delete()
+        Admins.query.delete()
+        Amenities.query.delete()
+        Guests.query.delete()
 
-        print("Starting seed...")
+        db.session.commit()
+        print("Old data cleared.")
 
-    # Seed code goes here!
+        print("Starting fresh seed...")
 
-        check_in_date = fake.date_time_between_dates(
-            datetime_start=datetime(2025,1,1),
-            datetime_end=datetime.utcnow()
-        )
+        # Guests
+        guests = [
+            Guests(
+                name=fake.name(),
+                email=fake.unique.email(),
+                _password_hash="password123", 
+            )
+            for _ in range(50)
+        ]
+        db.session.add_all(guests)
+        db.session.commit()
+        print("Seeded Guests")
 
-        check_out_date = check_in_date + timedelta(days=fake.random_int(min=1, max=30))
+        # Admins
+        admins = [
+            Admins(
+                name=fake.unique.name(),
+                _password_hash="password123",
+            )
+            for _ in range(10)
+        ]
+        db.session.add_all(admins)
+        db.session.commit()
+        print("Seeded Admins")
 
+       # Hotels
+        hotels = []
+        used_emails = set()
+        used_names = set()
+        used_addresses = set()
+        used_phones = set()
+
+        for admin in admins:
+            name = fake.unique.company()
+            email = fake.unique.email()
+            address = fake.unique.address()
+            phone = fake.unique.msisdn()
+
+            hotel = Hotels(
+                name=name,
+                address=address,
+                city=fake.city(),
+                country=fake.country(),
+                email=email,
+                phone=phone,
+                admin=admin,
+            )
+
+            hotels.append(hotel)
+
+        db.session.add_all(hotels)
+        db.session.commit()
+
+        print("Seeded Hotels")
+
+        # Room Types
+        room_types_list = [
+            "Single Room",
+            "Double Room",
+            "Twin Room",
+            "Suite",
+            "Deluxe Room",
+        ]
+        room_types = [
+            RoomTypes(
+                type_name=type_name,
+                description=fake.sentence(),
+            )
+            for type_name in room_types_list
+        ]
+        db.session.add_all(room_types)
+        db.session.commit()
+        print("Seeded Room Types")
+        
+        # Rooms
+        rooms = []
+        for _ in range(100):
+            hotel = rc(hotels)
+            room_type = rc(room_types)
+            total_rooms = randint(3, 15)
+            available_rooms = randint(0, total_rooms)
+            room = Rooms(
+                hotel=hotel,
+                room_type=room_type,
+                room_name=f"Room-{randint(100, 999)}",
+                price_per_night=fake.pyfloat(
+                    left_digits=5, right_digits=2, min_value=5000, max_value=80000
+                ),
+                is_available=available_rooms > 0,
+                total_rooms=total_rooms,
+                available_rooms=available_rooms,
+                max_per_booking=randint(1, min(3, total_rooms)),
+            )
+            rooms.append(room)
+
+        db.session.add_all(rooms)
+        db.session.commit()
+        print("Seeded Rooms)")
+
+        # Amenities
         amenities_list = [
             "Free Wi-Fi",
             "Swimming Pool",
@@ -56,140 +150,65 @@ if __name__ == '__main__':
             "Free Parking",
             "Airport Shuttle",
             "Business Center",
-            "Laundry Service"
+            "Laundry Service",
         ]
 
-        room_types_list = [
-            "Single Room",
-            "Double Room",
-            "Twin Room",
-            "Suite",
-            "Deluxe Room"
-        ]
-
-
-
-    # Guests
-        guests =[]
-        for n in range(25):
-
-            guest = Guests(
-                name = fake.name(),
-                email = fake.email(),
-                _password_hash = "password123"
-            )
-            guests.append(guest)
-
-        print("Seeded Guests data")
-
-
-    # HotelAmenities
-        hotel_amenities = []
-        for n in range (20):
-        
-            ha = HotelAmenities(
-                hotel_id = fake.random_int(min=1, max=20),
-                amenity_id = fake.random_int(min=1, max=20)
-            )
-            hotel_amenities.append(ha)
-
-        print("Seeded hotel_amenities data")
-
-
-    # Hotels
-        hotels = []
-        for n in range(20):
-
-            h = Hotels(
-                name = fake.name(),
-                address = fake.address(),
-                city =fake.city(),
-                country = fake.country(),
-                email = fake.email(),
-                phone = '0738495392'
-            )
-
-            hotels.append(h)
-        print("Seeded hotels data")
-
-
-    # Admins
-        admins = []
-        for n in range(15):
-
-            a = Admins(
-                name = fake.name(),
-                hotel_id = fake.random_int(min=1, max=20),
-                _password_hash = "password123"
-            )
-            admins.append(a)
-
-        print("Seeded admins data")
-
-
-    # Bookings
-        bookings = []
-        for n in range(20):
-
-            b = Bookings(
-                guest_id = fake.random_int(min=1, max=20),
-                room_id = fake.random_int(min=1, max=20),
-                check_in_date = check_in_date,
-                check_out_date = check_out_date,
-                status = rc(['Reserved', 'Pending', 'No Reservation'])
-            )
-            bookings.append(b)
-
-        print("Seeded bookings data")
-
-        
-    # Amenities
         amenities = []
-        for n in range(10):
-
+        for amenity_name in amenities_list:
             amenity = Amenities(
-                name = rc(amenities_list),
-                description = fake.sentence(),
+                name=amenity_name,
+                description=fake.sentence(),
             )
-
             amenities.append(amenity)
-        print("Seeded amenities data")
 
-
-    # Rooms
-        rooms = []
-        for n in range(30):
-            r = Rooms(
-                hotel_id = randint(1, 20),
-                room_type_id = randint(1, 5),
-                room_name = f"Room-{randint(100, 999)}",
-                price_per_night = fake.pyfloat(left_digits=6, right_digits=2, min_value=5000, max_value=80000),
-                is_available = fake.pybool()
-            )
-
-            rooms.append(r)
-        print("Seeded rooms data")
-
-
-    # RoomTypes
-        room_types = []
-        for n in range(5):
-            rt = RoomTypes(
-                type_name = rc(room_types_list),
-                description = fake.sentence()
-            )
-
-            room_types.append(rt)
-        print("Seeded room types data")
-
-
-        db.session.add_all(
-            guests + hotel_amenities + hotels + admins + bookings + amenities + rooms + room_types
-        )
+        db.session.add_all(amenities)
         db.session.commit()
-<<<<<<< HEAD
-        print("Data Seeded sucessfully")
-    
-=======
-        print("Data Seeded sucessfully")
->>>>>>> ef674dd (Implement admin interface components:)
+        print("Seeded unique Amenities")
+
+        hotel_amenities = []
+        for hotel in hotels:
+            selected_amenities = fake.random_elements(
+                elements=amenities,
+                length=randint(3, 6),
+                unique=True
+            )
+            for amenity in selected_amenities:
+                ha = HotelAmenities(hotel_id=hotel.id, amenity_id=amenity.id)
+                hotel_amenities.append(ha)
+
+        db.session.add_all(hotel_amenities)
+        db.session.commit()
+        print("Seeded Hotel Amenities (unique per hotel)")
+
+
+        # Bookings
+        bookings = []
+        for _ in range(40):
+            guest = rc(guests)
+            check_in_date = fake.date_time_between(start_date="-6m", end_date="now")
+            check_out_date = check_in_date + timedelta(days=fake.random_int(min=1, max=10))
+
+            booking = Bookings(
+                guest_id=guest.id,
+                check_in_date=check_in_date,
+                check_out_date=check_out_date,
+                status=rc(["Confirmed", "Pending", "Denied"]),
+            )
+            bookings.append(booking)
+
+        db.session.add_all(bookings)
+        db.session.commit()
+        print("Seeded Bookings (linked to Guests)")
+
+        # Booked Rooms
+        booked_rooms = []
+        for booking in bookings:
+            selected_rooms = fake.random_elements(elements=rooms, length=randint(1, 3), unique=True)
+            for room in selected_rooms:
+                booked_rooms.append(BookedRoom(booking_id=booking.id, room_id=room.id))
+
+        db.session.add_all(booked_rooms)
+        db.session.commit()
+        print("Seeded Booked Rooms")
+
+        print(" All data seeded successfully!\n")
