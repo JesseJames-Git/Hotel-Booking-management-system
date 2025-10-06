@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Formik, useFormik } from "formik";
+import { useFormik } from "formik";
 import * as yup from "yup";
 
 const AddAmenities = ({ hotel }) => {
