@@ -48,31 +48,31 @@ const AddHotel = ({ onHotelAdded }) => {
       .join(' ')
   }
   
-  return (
-    <div>
-      <h2>Add Your Hotel</h2>
-      <form onSubmit={handleSubmit}>
-        {["name", "email", "phone", "city", "country", "address"].map((field) => (
-          <div key={field}>
-            <label htmlFor={field}>{toTitleCase(field)}:</label>
-            <br/>
-            <input
-              id={field}
-              name={field}
-              value={values[field]}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              placeholder={`Enter ${toTitleCase(field)}`}
-              className={errors[field] && touched[field] ? "input-errors": ""}
-            />
-            {errors[field] && touched[field] && <p className="error-msg">{errors[field]}</p>}
-            <br/>
-          </div>
-        ))}
-        <button type="submit">Add Hotel</button>
-      </form>
-    </div>
-  );
-};
 
+  return (
+  <div className="add-hotel-container">
+    <h2>Add Your Hotel</h2>
+    <form onSubmit={handleSubmit}>
+      {["name", "email", "phone", "city", "country", "address"].map((field) => (
+        <div key={field}>
+          <label htmlFor={field}>{toTitleCase(field)}:</label>
+          <input
+            id={field}
+            name={field}
+            value={values[field]}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            placeholder={`Enter ${toTitleCase(field)}`}
+            className={errors[field] && touched[field] ? "input-errors" : ""}
+          />
+          {errors[field] && touched[field] && (
+            <p className="error-msg">{errors[field]}</p>
+          )}
+        </div>
+      ))}
+      <button type="submit">Add Hotel</button>
+    </form>
+  </div>
+  )
+}
 export default AddHotel;

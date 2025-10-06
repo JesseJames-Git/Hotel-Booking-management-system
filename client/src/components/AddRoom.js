@@ -1,16 +1,17 @@
-import React, { useState, useEffect } from "react"
-import { useFormik } from "formik"
-import * as Yup from "yup"
+import React, { useState, useEffect } from "react";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import "../styling/AddRoom.css"; // 👈 Import vanilla CSS
 
-const AddForm = ({ hotel }) => {
-  const [roomTypes, setRoomTypes] = useState([])
+const AddRoom = ({ hotel }) => {
+  const [roomTypes, setRoomTypes] = useState([]);
 
   useEffect(() => {
     fetch("/room_types")
       .then((r) => r.json())
       .then((data) => setRoomTypes(data))
-      .catch((err) => console.error("Error fetching room types:", err))
-  }, [])
+      .catch((err) => console.error("Error fetching room types:", err));
+  }, []);
 
   const formik = useFormik({
     initialValues: {
@@ -28,7 +29,7 @@ const AddForm = ({ hotel }) => {
       room_type_id: Yup.string().required("Room type is required"),
     }),
     onSubmit: (values, { resetForm }) => {
-      const payload = { ...values, hotel_id: hotel.id }
+      const payload = { ...values, hotel_id: hotel.id };
 
       fetch("/rooms", {
         method: "POST",
@@ -36,66 +37,68 @@ const AddForm = ({ hotel }) => {
         body: JSON.stringify(payload),
       })
         .then((r) => {
-          if (!r.ok) throw new Error("Failed to add room")
-          return r.json()
+          if (!r.ok) throw new Error("Failed to add room");
+          return r.json();
         })
         .then((data) => {
-          alert(`Room "${data.room_name}" added successfully!`)
-          resetForm()
+          alert(`Room "${data.room_name}" added successfully!`);
+          resetForm();
         })
-        .catch((err) => console.error("Error adding room:", err))
+        .catch((err) => console.error("Error adding room:", err));
     },
-  })
+  });
 
   return (
-    <div className="p-4 border rounded-lg shadow-md max-w-md mx-auto">
-      <h2 className="text-xl font-semibold mb-4">Add a Room</h2>
+    <div className="add-room-container">
+      <h2 className="add-room-title">Add a Room</h2>
 
-      <form onSubmit={formik.handleSubmit} className="flex flex-col gap-4">
-
+      <form onSubmit={formik.handleSubmit} className="add-room-form">
         {/* Room Name */}
-        <div>
-          <label className="block font-medium">Room Name</label>
+        <div className="form-group">
+          <label htmlFor="room_name">Room Name</label>
           <input
             type="text"
             name="room_name"
+            id="room_name"
             value={formik.values.room_name}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
-            className="border p-2 rounded w-full"
             placeholder="e.g. Deluxe Suite"
+            className={formik.errors.room_name && formik.touched.room_name ? "input-error" : ""}
           />
           {formik.touched.room_name && formik.errors.room_name && (
-            <div className="text-red-500 text-sm">{formik.errors.room_name}</div>
+            <p className="error-msg">{formik.errors.room_name}</p>
           )}
         </div>
 
         {/* Price per night */}
-        <div>
-          <label className="block font-medium">Price per Night ($)</label>
+        <div className="form-group">
+          <label htmlFor="price_per_night">Price per Night ($)</label>
           <input
             type="text"
             name="price_per_night"
+            id="price_per_night"
             value={formik.values.price_per_night}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
-            className="border p-2 rounded w-full"
             placeholder="e.g. 120.00"
+            className={formik.errors.price_per_night && formik.touched.price_per_night ? "input-error" : ""}
           />
           {formik.touched.price_per_night && formik.errors.price_per_night && (
-            <div className="text-red-500 text-sm">{formik.errors.price_per_night}</div>
+            <p className="error-msg">{formik.errors.price_per_night}</p>
           )}
         </div>
 
         {/* Room Type */}
-        <div>
-          <label className="block font-medium">Room Type</label>
+        <div className="form-group">
+          <label htmlFor="room_type_id">Room Type</label>
           <select
             name="room_type_id"
+            id="room_type_id"
             value={formik.values.room_type_id}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
-            className="border p-2 rounded w-full"
+            className={formik.errors.room_type_id && formik.touched.room_type_id ? "input-error" : ""}
           >
             <option value="">Select a type...</option>
             {roomTypes.map((rt) => (
@@ -105,31 +108,29 @@ const AddForm = ({ hotel }) => {
             ))}
           </select>
           {formik.touched.room_type_id && formik.errors.room_type_id && (
-            <div className="text-red-500 text-sm">{formik.errors.room_type_id}</div>
+            <p className="error-msg">{formik.errors.room_type_id}</p>
           )}
         </div>
 
         {/* Availability */}
-        <div className="flex items-center gap-2">
+        <div className="checkbox-group">
           <input
             type="checkbox"
             name="is_available"
+            id="is_available"
             checked={formik.values.is_available}
             onChange={formik.handleChange}
           />
-          <label>Available</label>
+          <label htmlFor="is_available">Available</label>
         </div>
 
         {/* Submit Button */}
-        <button
-          type="submit"
-          className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
-        >
+        <button type="submit" className="submit-btn">
           Add Room
         </button>
       </form>
     </div>
-  )
-}
+  );
+};
 
-export default AddForm
+export default AddRoom;

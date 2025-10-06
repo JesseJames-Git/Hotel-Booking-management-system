@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
+import "../styling/Reservations.css";
 
 const Reservations = () => {
   const { hotelId } = useParams();
@@ -32,7 +33,6 @@ const Reservations = () => {
       .catch((err) => console.error("Error updating status:", err));
   };
 
-  // yup schema for status form
   const statusSchema = yup.object().shape({
     status: yup
       .string()
@@ -41,42 +41,56 @@ const Reservations = () => {
   });
 
   return (
-    <div>
-      <h2>Reservations</h2>
-      <ul>
-        {bookings.map((b) => (
-          <li key={b.id} style={{ borderBottom: "1px solid #ccc", marginBottom: "10px" }}>
-            <p>Guest Name: {b.guest ? b.guest.name : "Unknown Guest"}</p>
-            <p>Guest Email: {b.guest ? b.guest.email : "N/A"}</p>
-            <p>Check-In Date: {b.check_in_date}</p>
-            <p>Check-Out Date: {b.check_out_date}</p>
-
-            <ul>
-              {b.rooms.map((r) => (
-                <li key={r.id}>
-                  <p>Room Name: {r.room_name}</p>
-                  <p>Price per Night: {r.price_per_night}</p>
-                  <p>Availability: {r.is_available ? "Yes" : "No"}</p>
-                </li>
-              ))}
-            </ul>
-
-            {editingBookingId === b.id ? (
-              <FormikStatusForm
-                booking={b}
-                statusSchema={statusSchema}
-                handleStatusChange={handleStatusChange}
-                cancelEdit={() => setEditingBookingId(null)}
-              />
-            ) : (
-              <div>
-                <p>Status: {b.status}</p>
-                <button onClick={() => setEditingBookingId(b.id)}>Change</button>
+    <div className="reservations-container">
+      <h2 className="reservations-title">Reservations</h2>
+      {bookings.length === 0 ? (
+        <p className="empty-msg">No reservations found for this hotel.</p>
+      ) : (
+        <ul className="reservations-list">
+          {bookings.map((b) => (
+            <li key={b.id} className="reservation-card">
+              <div className="reservation-details">
+                <h3>Guest: {b.guest ? b.guest.name : "Unknown"}</h3>
+                <p><strong>Email:</strong> {b.guest?.email || "N/A"}</p>
+                <p><strong>Check-In:</strong> {b.check_in_date}</p>
+                <p><strong>Check-Out:</strong> {b.check_out_date}</p>
               </div>
-            )}
-          </li>
-        ))}
-      </ul>
+
+              <div className="room-list">
+                <h4>Rooms</h4>
+                {b.rooms.map((r) => (
+                  <div key={r.id} className="room-item">
+                    <p><strong>{r.room_name}</strong></p>
+                    <p>Price: ${r.price_per_night}</p>
+                    <p>Available: {r.is_available ? "Yes" : "No"}</p>
+                  </div>
+                ))}
+              </div>
+
+              {editingBookingId === b.id ? (
+                <FormikStatusForm
+                  booking={b}
+                  statusSchema={statusSchema}
+                  handleStatusChange={handleStatusChange}
+                  cancelEdit={() => setEditingBookingId(null)}
+                />
+              ) : (
+                <div className="status-section">
+                  <p className={`status-label status-${b.status.toLowerCase()}`}>
+                    Status: {b.status}
+                  </p>
+                  <button
+                    className="btn-edit"
+                    onClick={() => setEditingBookingId(b.id)}
+                  >
+                    Change
+                  </button>
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };
@@ -90,7 +104,7 @@ const FormikStatusForm = ({ booking, statusSchema, handleStatusChange, cancelEdi
   });
 
   return (
-    <form onSubmit={formik.handleSubmit}>
+    <form onSubmit={formik.handleSubmit} className="status-form">
       <select
         name="status"
         value={formik.values.status}
@@ -102,12 +116,14 @@ const FormikStatusForm = ({ booking, statusSchema, handleStatusChange, cancelEdi
         <option value="Confirmed">Confirmed</option>
       </select>
       {formik.errors.status && formik.touched.status && (
-        <p style={{ color: "red" }}>{formik.errors.status}</p>
+        <p className="error-text">{formik.errors.status}</p>
       )}
-      <button type="submit">Save</button>
-      <button type="button" onClick={cancelEdit}>
-        Cancel
-      </button>
+      <div className="form-buttons">
+        <button type="submit" className="btn-save">Save</button>
+        <button type="button" className="btn-cancel" onClick={cancelEdit}>
+          Cancel
+        </button>
+      </div>
     </form>
   );
 };
