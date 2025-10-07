@@ -697,10 +697,14 @@ api.add_resource(BookingByHotelId, "/api/hotels/<int:hotel_id>/bookings")
 api.add_resource(HotelAmenitiesResource, "/api/hotel/<int:hotel_id>/amenities")
 
 @app.route('/', defaults={'path': ''})
+@app.route('/')
+def serve_index():
+    return send_from_directory(os.path.join(app.root_path, '../client/build'), 'index.html')
+
 @app.route('/<path:path>')
-def serve_react(path):
-    build_dir = os.path.join(os.path.dirname(__file__), '../client/build')
-    if path != "" and os.path.exists(os.path.join(build_dir, path)):
+def serve_static(path):
+    build_dir = os.path.join(app.root_path, '../client/build')
+    if os.path.exists(os.path.join(build_dir, path)):
         return send_from_directory(build_dir, path)
     else:
         return send_from_directory(build_dir, 'index.html')
