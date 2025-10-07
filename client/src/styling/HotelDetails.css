@@ -1,0 +1,101 @@
+.hotel-details {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+.hotel-header {
+  background: linear-gradient(to right, #007bff, #28a745);
+  color: white;
+  padding: 25px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  text-align: center;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+}
+
+.hotel-header h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+.location {
+  font-style: italic;
+  margin: 6px 0;
+}
+
+.details-section {
+  margin-bottom: 30px;
+}
+.details-section h3 {
+  margin-bottom: 15px;
+  color: #007bff;
+}
+
+.amenities-list {
+  list-style: none;
+  padding: 0;
+}
+.amenities-list li {
+  background: #f9f9f9;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #eee;
+}
+
+.rooms-grid {
+  display: grid;
+  gap: 15px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+.room-card {
+  background: #fff;
+  border: 1px solid #eaeaea;
+  border-radius: 10px;
+  padding: 15px;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  transition: transform 0.2s;
+}
+.room-card:hover {
+  transform: translateY(-4px);
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 25px;
+}
+
+.btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+.btn-primary {
+  background: #007bff;
+  color: white;
+}
+.btn-primary:hover {
+  background: #0056b3;
+}
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+.btn-secondary:hover {
+  background: #565e64;
+}
+
+.loading, .error {
+  text-align: center;
+  color: #555;
+  margin-top: 40px;
+}
+.error {
+  color: #dc3545;
+}
