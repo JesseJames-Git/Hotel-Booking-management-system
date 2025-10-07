@@ -1,7 +1,9 @@
 from flask import request, jsonify, make_response
 from sqlalchemy.orm import joinedload
 from config import app, db, api, Resource, reqparse, session
-from models import Hotels, Guests, Rooms, Bookings, BookedRoom, Admins, Amenities, HotelAmenities, RoomTypes
+from models import( 
+    Hotels, Guests, Rooms, Bookings, BookedRoom, 
+    Admins, Amenities, HotelAmenities, RoomTypes)
 from datetime import datetime
 
 def is_room_available(room_id: int, check_in: datetime, check_out: datetime) -> bool:
@@ -269,7 +271,7 @@ class GuestBookings(Resource):
 class BookingById(Resource):
     def patch(self, booking_id):
         guest_id = session.get("guest_id")
-        admin_id = session.get("admin_id") or 7
+        admin_id = session.get("admin_id")
 
         if guest_id:
             booking = Bookings.query.filter_by(id=booking_id, guest_id=guest_id).first()
@@ -401,11 +403,16 @@ class HotelsList(Resource):
             "email",
             "phone"
         ))for h in Hotels.query.all()]
+    
 
     def post(self):
         admin_id = session.get("admin_id")
         if not admin_id:
             return {"error": "Unauthorized"}, 401
+        
+        existing_hotel = Hotels.query.filter_by(admin_id=admin_id).first()
+        if existing_hotel:
+            return {"error": "Admin already owns a hotel"}, 400        
 
         data = request.get_json()
         hotel = Hotels(
@@ -455,7 +462,7 @@ class SingleHotel(Resource):
     
 class AdminHotel(Resource):
     def get(self):
-        admin_id = session.get("admin_id") or 7
+        admin_id = session.get("admin_id")
 
         if not admin_id:
             return {"error": "Unauthorized"}, 401
@@ -463,8 +470,8 @@ class AdminHotel(Resource):
         my_hotel = Hotels.query.filter_by(admin_id=admin_id).first()
 
         return make_response(my_hotel.to_dict(only=(
-            "id", "name", "city", "country", "email", "address",
-            "phone", "rooms.id","rooms.room_name","rooms.is_available","rooms.price_per_night","rooms.room_type",
+            "id", "name", "city", "country", "email", "address", "phone",
+            "rooms.id","rooms.room_name","rooms.is_available","rooms.price_per_night","rooms.room_type",
         )), 200)
 
     
@@ -477,7 +484,7 @@ class AdminLogin(Resource):
 
         if admin and admin.authenticate(data.get('password')):
             session['admin_id'] = admin.id
-            return make_response({'message': 'Login successful', 'admin':admin.to_dict()}, 200)
+            return make_response({'message': 'Login successful', 'admin':admin.to_dict(only=("id", "name"))}, 200)
         else:
             return make_response({'Error 401': 'Invalid Email or Password'}, 401)
 

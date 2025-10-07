@@ -6,52 +6,72 @@ import * as yup from 'yup'
 const AdminLoginSchema = yup.object().shape({
   name: yup.string().required('Admin Name is required.'),
   password: yup.string().required('Password is required.'),
-});
+})
 
 const HotelAdminSignIn = ({ onAdminLogin }) => {
   const [submissionError, setSubmissionError] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const history = useHistory()
 
-  const initialValues = { name: '', password: '' };
+  const initialValues = { name: '', password: '' }
 
-  const handleSubmit = (values, { setSubmitting }) => {
-    setIsLoading(true)
-    setSubmissionError(null)
+ const handleSubmit = (values, { setSubmitting }) => {
+  setIsLoading(true)
+  setSubmissionError(null)
 
-    fetch("/admin/login", { 
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify(values),
+  fetch("/admin/login", { 
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(values),
+  })
+    .then((res) => {
+      setIsLoading(false)
+      if (res.ok) {
+        return res.json().then((data) => {
+          const adminUser = data.admin || data
+          if (onAdminLogin) {
+            onAdminLogin({ ...adminUser, role: 'admin' })
+          }
+          setSubmitting(false)
+
+          fetch("/admin/hotel", { credentials: "include" })
+            .then(async (r) => {
+              if (!r.ok) {
+                history.push("/admin/add_hotel")
+                return
+              }
+
+              const hotelData = await r.json()
+
+              if (!hotelData || Object.keys(hotelData).length === 0) {
+                history.push("/admin/add_hotel")
+              } else {
+                history.push("/admin/home")
+              }
+            })
+            .catch(() => history.push("/admin/add_hotel"))
+        })
+      } else {
+        res
+          .json()
+          .then((err) => {
+            setSubmissionError(err.message || "Invalid admin name or password.")
+            setSubmitting(false)
+          })
+          .catch(() => {
+            setSubmissionError("Server returned an unknown error.")
+            setSubmitting(false)
+          })
+      }
     })
-      .then((res) => {
-        setIsLoading(false)
-        if (res.ok) {
-          return res.json().then((data) => {
-            const adminUser = data.admin || data;
-            if (onAdminLogin) {
-              onAdminLogin({ ...adminUser, role: 'admin' })
-            }
-            setSubmitting(false);
-            history.push("/admin/home");
-          })
-        } else {
-          res.json().then((err) => {
-            setSubmissionError(err.message || 'Invalid admin name or password.')
-            setSubmitting(false)
-          }).catch(() => {
-            setSubmissionError('Server returned an unknown error.')
-            setSubmitting(false)
-          })
-        }
-      })
-      .catch(() => {
-        setIsLoading(false)
-        setSubmissionError('Network error or server unreachable.')
-        setSubmitting(false)
-      })
+    .catch(() => {
+      setIsLoading(false)
+      setSubmissionError("Network error or server unreachable.")
+      setSubmitting(false)
+    })
   }
+
 
   return (
     <div style={styles.container}>

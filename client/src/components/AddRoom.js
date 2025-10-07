@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import "../styling/AddRoom.css"; // 👈 Import vanilla CSS
+import "../styling/AddRoom.css";
 
 const AddRoom = ({ hotel }) => {
   const [roomTypes, setRoomTypes] = useState([]);

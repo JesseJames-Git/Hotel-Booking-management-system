@@ -46,7 +46,7 @@ const HotelAdminSignUp = ({ onAdminLogin }) => {
               onAdminLogin({ ...adminUser, role: 'admin' }) 
             }
             window.alert("Sign up Successful! Welcome!")
-            history.push("/admin/home") 
+            history.push("/admin/hotel") 
           })
         } else {
           res.json().then((err) => {

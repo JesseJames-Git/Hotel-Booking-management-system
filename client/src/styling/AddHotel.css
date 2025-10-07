@@ -81,6 +81,35 @@
   background-color: #0056b3;
   transform: scale(1.02);
 }
+.hotel-view-container {
+  margin-top: 2em;
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.hotel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1em;
+}
+
+.add-amenity-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s;
+}
+
+.add-amenity-btn:hover {
+  background-color: #0056b3;
+}
 
 .input-errors{
     border-color: rgb(184, 56, 56);

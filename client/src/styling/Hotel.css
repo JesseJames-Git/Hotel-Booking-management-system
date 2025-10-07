@@ -85,6 +85,15 @@
   font-size: 14px;
 }
 
+.loading-box {
+  background-color: #eef4ff;
+  padding: 1em;
+  text-align: center;
+  border-radius: 8px;
+  color: #003366;
+  font-weight: 500;
+}
+
 /* Empty States and Errors */
 .no-amenities {
   color: #777;
@@ -103,3 +112,6 @@
   text-align: center;
   font-weight: 500;
 }
+
+
+

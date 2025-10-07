@@ -3,16 +3,29 @@ import "../styling/Hotel.css";
 
 const Hotel = ({ hotel }) => {
   const [amenities, setAmenities] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!hotel?.id) return;
+    if (!hotel || !hotel.id) {
+      setLoading(false);
+      return;
+    }
+
     fetch(`/hotel/${hotel.id}/amenities`)
-      .then((r) => r.json())
-      .then((d) => setAmenities(d))
-      .catch((err) => console.error("Error fetching amenities:", err));
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to fetch amenities");
+        return r.json();
+      })
+      .then((data) => setAmenities(data))
+      .catch((err) => console.error("Error fetching amenities:", err))
+      .finally(() => setLoading(false));
   }, [hotel]);
 
-  if (!hotel || hotel.message) {
+  if (loading) {
+    return <p className="loading-box">Loading hotel details...</p>;
+  }
+
+  if (!hotel || !hotel.id || hotel.message) {
     return <p className="error-box">No hotel found for this admin.</p>;
   }
 
