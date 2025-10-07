@@ -1,7 +1,16 @@
 #!/usr/bin/env bash
-set -o errexit
+set -o errexit  # Exit immediately on error
 
-pip install -r requirements.txt  # just to be safe if dependencies change
-flask db upgrade  # apply migrations automatically
-gunicorn server.app:app --workers=2 --threads=2 --timeout=120
+echo "📦 Installing backend dependencies..."
+pip install -r requirements.txt
 
+echo "🧱 Building frontend..."
+npm install --prefix client
+npm run build --prefix client
+cd ..
+
+echo "⚙️ Applying database migrations..."
+flask db upgrade || echo "No migrations found or database not configured yet."
+
+echo "🚀 Starting Gunicorn server..."
+gunicorn server.app:app --workers=4 --threads=2 --timeout=120

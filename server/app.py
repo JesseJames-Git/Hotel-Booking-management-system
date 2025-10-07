@@ -1,6 +1,6 @@
-from flask import request, jsonify, make_response
+from flask import request, jsonify, make_response, send_from_directory
 from sqlalchemy.orm import joinedload
-from config import app, db, api, Resource, reqparse, session
+from config import app, db, api, Resource, reqparse, session, os
 from models import( 
     Hotels, Guests, Rooms, Bookings, BookedRoom, 
     Admins, Amenities, HotelAmenities, RoomTypes)
@@ -696,7 +696,14 @@ api.add_resource(BookingByHotelId, "/api/hotels/<int:hotel_id>/bookings")
 # HotelAmenities
 api.add_resource(HotelAmenitiesResource, "/api/hotel/<int:hotel_id>/amenities")
 
-
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_react(path):
+    build_dir = os.path.join(os.path.dirname(__file__), '../client/build')
+    if path != "" and os.path.exists(os.path.join(build_dir, path)):
+        return send_from_directory(build_dir, path)
+    else:
+        return send_from_directory(build_dir, 'index.html')
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
