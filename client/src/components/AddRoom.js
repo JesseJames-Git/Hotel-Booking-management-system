@@ -26,7 +26,7 @@ const AddRoom = ({ hotel }) => {
     onSubmit: (values, { resetForm }) => {
       const payload = { ...values, hotel_id: hotel.id };
 
-      fetch("/rooms", {
+      fetch("/api/rooms", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

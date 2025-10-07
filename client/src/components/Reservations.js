@@ -10,14 +10,14 @@ const Reservations = () => {
   const [editingBookingId, setEditingBookingId] = useState(null);
 
   useEffect(() => {
-    fetch(`/hotels/${hotelId}/bookings`)
+    fetch(`/api/hotels/${hotelId}/bookings`)
       .then((r) => r.json())
       .then((data) => setBookings(data))
       .catch((err) => console.error("Error fetching bookings:", err));
   }, [hotelId]);
 
   const handleStatusChange = (bookingId, newStatus, resetForm) => {
-    fetch(`/bookings/${bookingId}`, {
+    fetch(`/api/bookings/${bookingId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: newStatus }),

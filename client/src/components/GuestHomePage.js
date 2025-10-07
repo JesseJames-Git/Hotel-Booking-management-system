@@ -36,7 +36,7 @@ const GuestHomePage = ({ guest, my_bookings, setBookings }) => {
       check_out_date: `${dates.check_out_date}T12:00:00`,
     }
 
-    fetch(`/bookings/${bookingId}`, {
+    fetch(`/api/bookings/${bookingId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -62,7 +62,7 @@ const GuestHomePage = ({ guest, my_bookings, setBookings }) => {
     const previous = [...my_bookings]
     setBookings((prev) => prev.filter((b) => b.id !== bookingId))
 
-    fetch(`/bookings/${bookingId}`, { method: "DELETE" })
+    fetch(`/api/bookings/${bookingId}`, { method: "DELETE" })
       .then((res) => {
         if (!res.ok) {
           setBookings(previous)

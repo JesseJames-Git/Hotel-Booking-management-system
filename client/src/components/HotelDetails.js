@@ -8,7 +8,7 @@ const HotelDetails = ({ match }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/hotels/${id}`)
+    fetch(`/api/hotels/${id}`)
       .then((r) => r.json())
       .then((d) => {
         setHotel(d);

@@ -19,7 +19,7 @@ const HotelAdminSignIn = ({ onAdminLogin }) => {
   setIsLoading(true)
   setSubmissionError(null)
 
-  fetch("/admin/login", { 
+  fetch("/api/admin/login", { 
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
@@ -35,7 +35,7 @@ const HotelAdminSignIn = ({ onAdminLogin }) => {
           }
           setSubmitting(false)
 
-          fetch("/admin/hotel", { credentials: "include" })
+          fetch("/api/admin/hotel", { credentials: "include" })
             .then(async (r) => {
               if (!r.ok) {
                 history.push("/admin/add_hotel")

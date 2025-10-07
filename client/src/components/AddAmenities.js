@@ -24,7 +24,7 @@ const AddAmenities = ({ hotel }) => {
     onSubmit: (formValues) => {
       setServerError("");
       setSuccessMessage("");
-      fetch(`/hotel/${hotel.id}/amenities`, {
+      fetch(`/api/hotel/${hotel.id}/amenities`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formValues),

@@ -33,7 +33,7 @@ const HotelAdminSignUp = ({ onAdminLogin }) => {
       password: values.password,
     }
 
-    fetch("/admins", {
+    fetch("/api/admins", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),

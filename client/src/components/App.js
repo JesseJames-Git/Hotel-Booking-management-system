@@ -34,7 +34,7 @@ function App() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        let res = await fetch("/guest", { credentials: "include" });
+        let res = await fetch("/api/guest", { credentials: "include" });
         if (res.ok) {
           let data = await res.json();
           setUser({ ...data, role: "guest" });
@@ -42,7 +42,7 @@ function App() {
           return;
         }
 
-        res = await fetch("/admin", { credentials: "include" });
+        res = await fetch("/api/admin", { credentials: "include" });
         if (res.ok) {
           let data = await res.json();
           setUser({ ...data, role: "admin" });
@@ -64,7 +64,7 @@ function App() {
 
   useEffect(() => {
     if (user?.role === "guest") {
-      fetch("/my_bookings", { credentials: "include" })
+      fetch("/api/my_bookings", { credentials: "include" })
         .then((r) => r.json())
         .then((d) => setBookings(d))
         .catch(() => setBookings([]));
@@ -72,7 +72,7 @@ function App() {
   }, [user]);
 
   useEffect(() => {
-    fetch("/hotels")
+    fetch("/api/hotels")
       .then((r) => r.json())
       .then((d) => setHotels(d))
       .catch(() => setHotels([]));
@@ -81,7 +81,7 @@ function App() {
   useEffect(() => {
     if (user?.role === "admin") {
       setLoading(true);
-      fetch("/admin/hotel", { credentials: "include" })
+      fetch("/api/admin/hotel", { credentials: "include" })
         .then((r) => {
           if (!r.ok) throw new Error("No hotel found");
           return r.json();

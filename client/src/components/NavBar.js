@@ -6,7 +6,7 @@ const NavBar = ({ user, setUser, hotel }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleLogout = () => {
-    fetch("/guests/logout", { method: "DELETE", credentials: "include" })
+    fetch("/api/guests/logout", { method: "DELETE", credentials: "include" })
       .then(() => setUser(null))
       .catch(() => setUser(null));
   };

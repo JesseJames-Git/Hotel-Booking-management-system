@@ -20,7 +20,7 @@ const GuestLogin = ({ onGuestLogin }) => {
     setIsLoading(true)
     setSubmissionError(null)
 
-    fetch("/guests/login", {
+    fetch("/api/guests/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",  

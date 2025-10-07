@@ -660,41 +660,41 @@ class HotelAmenitiesResource(Resource):
 
 
 # Admins
-api.add_resource(AdminsList, "/admins")
-api.add_resource(AdminLogin, "/admin/login")
-api.add_resource(CheckAdminSession, "/admin")
-api.add_resource(AdminLogout, "/admin/logout")
-api.add_resource(AdminHotel, "/admin/hotel")
+api.add_resource(AdminsList, "/api/admins")
+api.add_resource(AdminLogin, "/api/admin/login")
+api.add_resource(CheckAdminSession, "/api/admin")
+api.add_resource(AdminLogout, "/api/admin/logout")
+api.add_resource(AdminHotel, "/api/admin/hotel")
 
 # Hotels
-api.add_resource(HotelsList, "/hotels")
-api.add_resource(SingleHotel, "/hotels/<int:id>")
+api.add_resource(HotelsList, "/api/hotels")
+api.add_resource(SingleHotel, "/api/hotels/<int:id>")
 
 # Guests
-api.add_resource(GuestsList, "/guests")
-api.add_resource(SingleGuest, "/guests/<int:id>")
-api.add_resource(GuestLogin, "/guests/login")
-api.add_resource(CheckGuestSession, "/guest")
-api.add_resource(GuestLogout, "/guests/logout")
+api.add_resource(GuestsList, "/api/guests")
+api.add_resource(SingleGuest, "/api/guests/<int:id>")
+api.add_resource(GuestLogin, "/api/guests/login")
+api.add_resource(CheckGuestSession, "/api/guest")
+api.add_resource(GuestLogout, "/api/guests/logout")
 
 
 # Rooms
-api.add_resource(RoomsList, "/rooms")
-api.add_resource(SingleRoom, "/rooms/<int:id>")
-api.add_resource(AvailableRoomsPerHotel, "/rooms/<int:hotel_id>/available")
-api.add_resource(RoomsPerHotel, "/hotels/<int:hotel_id>/rooms")
+api.add_resource(RoomsList, "/api/rooms")
+api.add_resource(SingleRoom, "/api/rooms/<int:id>")
+api.add_resource(AvailableRoomsPerHotel, "/api/rooms/<int:hotel_id>/available")
+api.add_resource(RoomsPerHotel, "/api/hotels/<int:hotel_id>/rooms")
 
 # RoomTypes
-api.add_resource(RoomTypesResource, "/room_types")
+api.add_resource(RoomTypesResource, "/api/room_types")
 
 # Bookings
-api.add_resource(BookingListResource, "/bookings")
-api.add_resource(GuestBookings, "/my_bookings")
-api.add_resource(BookingById, "/bookings/<int:booking_id>")
-api.add_resource(BookingByHotelId, "/hotels/<int:hotel_id>/bookings")
+api.add_resource(BookingListResource, "/api/bookings")
+api.add_resource(GuestBookings, "/api/my_bookings")
+api.add_resource(BookingById, "/api/bookings/<int:booking_id>")
+api.add_resource(BookingByHotelId, "/api/hotels/<int:hotel_id>/bookings")
 
 # HotelAmenities
-api.add_resource(HotelAmenitiesResource, "/hotel/<int:hotel_id>/amenities")
+api.add_resource(HotelAmenitiesResource, "/api/hotel/<int:hotel_id>/amenities")
 
 
 

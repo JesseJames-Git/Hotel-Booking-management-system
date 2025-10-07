@@ -34,7 +34,7 @@ const BookingForm = ({ currentUser, onBookingSuccess }) => {
     setIsRoomsLoading(true);
     setFetchError(null);
 
-    fetch(`/rooms/${hotelId}/available`) 
+    fetch(`/api/rooms/${hotelId}/available`) 
       .then((res) => {
         if (res.ok) return res.json();
         throw new Error('Failed to fetch rooms.');
@@ -72,7 +72,7 @@ const BookingForm = ({ currentUser, onBookingSuccess }) => {
       check_out: values.check_out_date, 
     };
 
-    fetch("/bookings", {
+    fetch("/api/bookings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),

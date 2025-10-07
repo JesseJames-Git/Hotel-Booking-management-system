@@ -11,7 +11,7 @@ const Hotel = ({ hotel }) => {
       return;
     }
 
-    fetch(`/hotel/${hotel.id}/amenities`)
+    fetch(`/api/hotel/${hotel.id}/amenities`)
       .then((r) => {
         if (!r.ok) throw new Error("Failed to fetch amenities");
         return r.json();

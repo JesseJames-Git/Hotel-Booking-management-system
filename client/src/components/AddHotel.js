@@ -12,7 +12,7 @@ const AddHotel = ({ user }) => {
   const history = useHistory();
 
   useEffect(() => {
-    fetch(`/admin/hotel`, { credentials: "include" })
+    fetch(`/api/admin/hotel`, { credentials: "include" })
       .then((res) => {
         if (res.ok) return res.json();
         throw new Error("No hotel found");
@@ -46,7 +46,7 @@ const AddHotel = ({ user }) => {
       },
       validationSchema: schema,
       onSubmit: (formValues) => {
-        fetch("/hotels", {
+        fetch("/api/hotels", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
