@@ -14,7 +14,8 @@ flask = "*"
 flask-restful = "*"
 flask-sqlalchemy = "*"
 flask-bcrypt = "*"
-
+gunicorn = "*"
+psycopg2-binary = "*"
 
 [requires]
 python_full_version = "3.8.13"
