@@ -1,23 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import "../styling/AddRoom.css";
 
 const AddRoom = ({ hotel }) => {
-  const [roomTypes, setRoomTypes] = useState([]);
-
-  useEffect(() => {
-    fetch("/room_types")
-      .then((r) => r.json())
-      .then((data) => setRoomTypes(data))
-      .catch((err) => console.error("Error fetching room types:", err));
-  }, []);
-
   const formik = useFormik({
     initialValues: {
       room_name: "",
       price_per_night: "",
-      room_type_id: "",
+      room_type: "",
+      description: "",
       is_available: true,
     },
     validationSchema: Yup.object({
@@ -26,7 +18,10 @@ const AddRoom = ({ hotel }) => {
         .typeError("Price must be a number")
         .positive("Price must be positive")
         .required("Price is required"),
-      room_type_id: Yup.string().required("Room type is required"),
+      room_type: Yup.string().required("Room type is required"),
+      description: Yup.string()
+        .min(5, "Description must be at least 5 characters")
+        .required("Description is required"),
     }),
     onSubmit: (values, { resetForm }) => {
       const payload = { ...values, hotel_id: hotel.id };
@@ -64,7 +59,11 @@ const AddRoom = ({ hotel }) => {
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
             placeholder="e.g. Deluxe Suite"
-            className={formik.errors.room_name && formik.touched.room_name ? "input-error" : ""}
+            className={
+              formik.errors.room_name && formik.touched.room_name
+                ? "input-error"
+                : ""
+            }
           />
           {formik.touched.room_name && formik.errors.room_name && (
             <p className="error-msg">{formik.errors.room_name}</p>
@@ -82,33 +81,59 @@ const AddRoom = ({ hotel }) => {
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
             placeholder="e.g. 120.00"
-            className={formik.errors.price_per_night && formik.touched.price_per_night ? "input-error" : ""}
+            className={
+              formik.errors.price_per_night && formik.touched.price_per_night
+                ? "input-error"
+                : ""
+            }
           />
-          {formik.touched.price_per_night && formik.errors.price_per_night && (
-            <p className="error-msg">{formik.errors.price_per_night}</p>
+          {formik.touched.price_per_night &&
+            formik.errors.price_per_night && (
+              <p className="error-msg">{formik.errors.price_per_night}</p>
+            )}
+        </div>
+
+        {/* Room Type (input) */}
+        <div className="form-group">
+          <label htmlFor="room_type">Room Type</label>
+          <input
+            type="text"
+            name="room_type"
+            id="room_type"
+            value={formik.values.room_type}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            placeholder="e.g. King Suite"
+            className={
+              formik.errors.room_type && formik.touched.room_type
+                ? "input-error"
+                : ""
+            }
+          />
+          {formik.touched.room_type && formik.errors.room_type && (
+            <p className="error-msg">{formik.errors.room_type}</p>
           )}
         </div>
 
-        {/* Room Type */}
+        {/* Description */}
         <div className="form-group">
-          <label htmlFor="room_type_id">Room Type</label>
-          <select
-            name="room_type_id"
-            id="room_type_id"
-            value={formik.values.room_type_id}
+          <label htmlFor="description">Description</label>
+          <textarea
+            name="description"
+            id="description"
+            rows="3"
+            value={formik.values.description}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
-            className={formik.errors.room_type_id && formik.touched.room_type_id ? "input-error" : ""}
-          >
-            <option value="">Select a type...</option>
-            {roomTypes.map((rt) => (
-              <option key={rt.id} value={rt.id}>
-                {rt.type_name} — {rt.description}
-              </option>
-            ))}
-          </select>
-          {formik.touched.room_type_id && formik.errors.room_type_id && (
-            <p className="error-msg">{formik.errors.room_type_id}</p>
+            placeholder="Briefly describe the room..."
+            className={
+              formik.errors.description && formik.touched.description
+                ? "input-error"
+                : ""
+            }
+          ></textarea>
+          {formik.touched.description && formik.errors.description && (
+            <p className="error-msg">{formik.errors.description}</p>
           )}
         </div>
 

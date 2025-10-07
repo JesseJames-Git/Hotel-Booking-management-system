@@ -1,8 +1,10 @@
-import React from "react";
-import { NavLink} from "react-router-dom";
+import React, { useState } from "react";
+import { NavLink } from "react-router-dom";
 import "../styling/NavBar.css";
 
-const NavBar = ({ user, setUser, hotel}) => {
+const NavBar = ({ user, setUser, hotel }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
   const handleLogout = () => {
     fetch("/guests/logout", { method: "DELETE", credentials: "include" })
       .then(() => setUser(null))
@@ -10,22 +12,28 @@ const NavBar = ({ user, setUser, hotel}) => {
   };
 
   return (
-    <nav className="navbar">
-      <h2 className="brand">Hotel Booking Management App</h2>
+    <nav className={`navbar-vertical ${isOpen ? "open" : ""}`}>
+      <div className="navbar-header">
+        <h1 className="brand">Hotel Booking Management</h1>
+        <button className="menu-toggle" onClick={() => setIsOpen(!isOpen)}>
+          {isOpen ? "✖" : "☰"}
+        </button>
+      </div>
 
-      <div className="nav-links">
+      {user && (
+        <div className="welcome-section">
+          <span className="welcome">Welcome, {user.name || user.email} 🎉</span>
+        </div>
+      )}
+
+      {/* Navigation links */}
+      <div className="nav-links-vertical">
         {user ? (
           <>
-            <span className="welcome">
-              Welcome, {user.name || user.email} 🎉
-            </span>
-
-            {/* Shared Links */}
             <NavLink to="/home" className="link" activeClassName="active-link">
               Home
             </NavLink>
 
-            {/* Guest Links */}
             {user.role === "guest" && (
               <NavLink
                 to="/guest/home"
@@ -36,7 +44,6 @@ const NavBar = ({ user, setUser, hotel}) => {
               </NavLink>
             )}
 
-            {/* Admin Links */}
             {user.role === "admin" && (
               <>
                 <NavLink
@@ -45,22 +52,6 @@ const NavBar = ({ user, setUser, hotel}) => {
                   activeClassName="active-link"
                 >
                   Admin Home
-                </NavLink>
-
-                <NavLink 
-                to="/admin/add_hotel"
-                className="link"
-                activeClassName="active-link"
-                >
-                  Add Hotel
-                </NavLink>
-
-                <NavLink
-                  to="/hotel/add_room"
-                  className="link"
-                  activeClassName="active-link"
-                >
-                  Add Room
                 </NavLink>
 
                 {hotel && (
@@ -72,6 +63,14 @@ const NavBar = ({ user, setUser, hotel}) => {
                     Reservations
                   </NavLink>
                 )}
+
+                <NavLink
+                  to="/hotel/add_room"
+                  className="link"
+                  activeClassName="active-link"
+                >
+                  Add Room
+                </NavLink>
 
                 <NavLink
                   to="/admin/add_amenities"
@@ -91,7 +90,6 @@ const NavBar = ({ user, setUser, hotel}) => {
               </>
             )}
 
-            {/* Common for all logged-in users */}
             <NavLink
               to="/hotels"
               className="link"
