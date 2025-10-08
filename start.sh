@@ -9,6 +9,8 @@ npm install --prefix client
 npm run build --prefix client
 cd ..
 
+cd server
+
 echo "⚙️ Applying database migrations..."
 flask db upgrade || echo "No migrations found or database not configured yet."
 
