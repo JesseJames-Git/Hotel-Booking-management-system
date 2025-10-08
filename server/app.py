@@ -697,17 +697,29 @@ api.add_resource(BookingByHotelId, "/api/hotels/<int:hotel_id>/bookings")
 api.add_resource(HotelAmenitiesResource, "/api/hotel/<int:hotel_id>/amenities")
 
 
+# ----------------------Front-end serving-----------------------------
+
+# Absolute path to React build folder
 BUILD_DIR = os.path.join(app.root_path, "static")
 
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
 def serve_frontend(path):
-    if path != "" and os.path.exists(os.path.join(BUILD_DIR, path)):
+    """
+    Serves React frontend:
+    - If the requested file exists in the build folder, serve it.
+    - Otherwise, always serve index.html (for React Router).
+    """
+    requested_path = os.path.join(BUILD_DIR, path)
+    if path != "" and os.path.exists(requested_path):
         return send_from_directory(BUILD_DIR, path)
     else:
         return send_from_directory(BUILD_DIR, "index.html")
 
 
 
-if __name__ == '__main__':
-    app.run(port=5555, debug=True)
+# Optional: if you still want app.run locally
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True)
+ 
