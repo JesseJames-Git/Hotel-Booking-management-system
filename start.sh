@@ -8,25 +8,15 @@ echo "🧱 Building frontend..."
 npm install --prefix client
 npm run build --prefix client
 
-# Navigate to server directory
-if [ -d "server" ]; then
-  cd server
-elif [ -d "./src/server" ]; then
-  cd ./src/server
-else
-  echo "❌ Could not find server directory!"
-  ls -la
-  exit 1
-fi
-
 echo "📂 Moving build to backend..."
-rm -rf server/static
-cp -r client/build server/static
+mkdir -p server/static
+cp -r client/build/* server/static/
 
+cd server
 
 echo "⚙️ Applying database migrations..."
 export FLASK_APP=app.py
 flask db upgrade || echo "No migrations found or database not configured yet."
 
 echo "🚀 Starting Gunicorn server..."
-exec gunicorn app:app
+exec gunicorn app:app --bind 0.0.0.0:$PORT

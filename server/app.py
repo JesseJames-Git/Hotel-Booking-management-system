@@ -697,15 +697,16 @@ api.add_resource(BookingByHotelId, "/api/hotels/<int:hotel_id>/bookings")
 api.add_resource(HotelAmenitiesResource, "/api/hotel/<int:hotel_id>/amenities")
 
 
+BUILD_DIR = os.path.join(app.root_path, "static")
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
-def serve_index(path):
-    static_dir = os.path.join(app.root_path, 'static')
-    if path != "" and os.path.exists(os.path.join(static_dir, path)):
-        return send_from_directory(static_dir, path)
+def serve_frontend(path):
+    if path != "" and os.path.exists(os.path.join(BUILD_DIR, path)):
+        return send_from_directory(BUILD_DIR, path)
     else:
-        return send_from_directory(static_dir, 'index.html')
+        return send_from_directory(BUILD_DIR, "index.html")
+
 
 
 if __name__ == '__main__':
