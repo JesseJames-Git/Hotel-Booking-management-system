@@ -25,3 +25,4 @@ flask db upgrade || echo "No migrations found or database not configured yet."
 
 echo "🚀 Starting Gunicorn server..."
 exec gunicorn app:app
+
