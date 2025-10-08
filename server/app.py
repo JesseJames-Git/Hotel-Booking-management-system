@@ -696,18 +696,17 @@ api.add_resource(BookingByHotelId, "/api/hotels/<int:hotel_id>/bookings")
 # HotelAmenities
 api.add_resource(HotelAmenitiesResource, "/api/hotel/<int:hotel_id>/amenities")
 
-@app.route('/', defaults={'path': ''})
-@app.route('/')
-def serve_index():
-    return send_from_directory(os.path.join(app.root_path, '../client/build'), 'index.html')
 
+
+@app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
-def serve_static(path):
-    build_dir = os.path.join(app.root_path, '../client/build')
-    if os.path.exists(os.path.join(build_dir, path)):
-        return send_from_directory(build_dir, path)
+def serve_index(path):
+    static_dir = os.path.join(app.root_path, 'static')
+    if path != "" and os.path.exists(os.path.join(static_dir, path)):
+        return send_from_directory(static_dir, path)
     else:
-        return send_from_directory(build_dir, 'index.html')
+        return send_from_directory(static_dir, 'index.html')
+
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
