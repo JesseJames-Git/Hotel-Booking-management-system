@@ -3,6 +3,16 @@
 ## Introduction and Description:
 This app is brings together database abstraction and clean UI components to make booking of rooms in hotels streamlined in terms of speed and ease.
 
+## Basic Usage:
+The apps main purpose was ease of a client's work in booking. So we made this app's navigation by simple Navbar clicking. Use it to explore your needs as a user of this app.
+
+* Note: The app's responses require time and patience, especially data fetching. Whenever you experience this ensure you reload or hard refresh using ctrl + R.
+
+### Deployed Link:
+This app uses Render for deployment services. Here is the deployed app link:
+
+
+# Developer Use
 It mainly consists of: 
 - A Client directory which includes all the important utilities and client-routing scripts serving the user interface and design.
 - A Server directory which includes the database schema and RESTful server-routing scripts which are responsible for creating the API.
@@ -14,10 +24,7 @@ It mainly consists of:
 - Python installed in your computer. (Python version 3 recommended)
 - Node.js installed
 
-## Basic Usage:
-The apps main purpose was ease of a client's work in booking. So we made this app's navigation by simple Navbar clicking. Use it to explore your needs as a user of this app.
 
-* Note: The app's responses require time and patience, especially data fetching. Whenever you experience this ensure you reload or hard refresh using ctrl + R.
 
 ## Installation instructions:
 1. Download the zip file from this repository.
