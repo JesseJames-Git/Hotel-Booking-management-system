@@ -10,7 +10,7 @@ The apps main purpose was ease of a client's work in booking. So we made this ap
 
 ### Deployed Link:
 This app uses Render for deployment services. Here is the deployed app link:
-
+https://hotel-booking-management-system-khmb.onrender.com
 
 # Developer Use
 It mainly consists of: 
