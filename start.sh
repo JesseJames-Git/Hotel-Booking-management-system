@@ -8,7 +8,7 @@ echo "🧱 Building frontend..."
 npm install --prefix client
 npm run build --prefix client
 
-# If Render starts in /opt/render/project/src, navigate to the server folder correctly
+# Navigate to server directory
 if [ -d "server" ]; then
   cd server
 elif [ -d "./src/server" ]; then
@@ -20,6 +20,7 @@ else
 fi
 
 echo "⚙️ Applying database migrations..."
+export FLASK_APP=app.py
 flask db upgrade || echo "No migrations found or database not configured yet."
 
 echo "🚀 Starting Gunicorn server..."
